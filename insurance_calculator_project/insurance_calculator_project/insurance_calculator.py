@@ -38,7 +38,7 @@ class InsuranceCalculator:
                          gender, i, f, -1, compensation)
 
     def calculate_insurance_sum(self, typ, variant, age_start, age_end, period,
-                  gender, i, f, payment):
+                                    gender, i, f, payment):
         return self.calculate(typ, variant, age_start, age_end, period,
                   gender, i, f, payment, -1)
 
