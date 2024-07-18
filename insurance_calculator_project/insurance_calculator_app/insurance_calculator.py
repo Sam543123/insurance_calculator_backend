@@ -33,15 +33,15 @@ class InsuranceCalculator:
                 elif j == 7:
                     self.qx_f.append(cell.value)
 
-    def calculate_insurance_premium(self, typ, variant, age_start, age_end, period,
-                  gender, i, f, compensation):
-        return self.calculate(typ, variant, age_start, age_end, period,
-                         gender, i, f, -1, compensation)
-
-    def calculate_insurance_sum(self, typ, variant, age_start, age_end, period,
-                                    gender, i, f, payment):
-        return self.calculate(typ, variant, age_start, age_end, period,
-                  gender, i, f, payment, -1)
+    # def calculate_insurance_premium(self, typ, variant, age_start, age_end, period,
+    #               gender, i, f, compensation):
+    #     return self.calculate(typ, variant, age_start, age_end, period,
+    #                      gender, i, f, -1, compensation)
+    #
+    # def calculate_insurance_sum(self, typ, variant, age_start, age_end, period,
+    #                                 gender, i, f, payment):
+    #     return self.calculate(typ, variant, age_start, age_end, period,
+    #               gender, i, f, payment, -1)
 
     def calculate(self, params):
 

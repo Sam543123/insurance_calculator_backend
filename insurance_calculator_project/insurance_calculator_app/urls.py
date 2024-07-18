@@ -6,5 +6,3 @@ from insurance_calculator_app.views import calculate_insurance_sum
 urlpatterns = [
     path('insurance_sum/', calculate_insurance_sum),
 ]
-
-urlpatterns = format_suffix_patterns(urlpatterns)
