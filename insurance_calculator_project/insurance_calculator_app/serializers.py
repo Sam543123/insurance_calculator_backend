@@ -30,6 +30,9 @@ class CalculatorInputSerializer(serializers.Serializer):
     gender = serializers.ChoiceField(choices=GENDER_CHOICES)
     insurance_premium_rate = serializers.FloatField()
     insurance_premium_supplement = serializers.FloatField(min_value=0)
+    insurance_premium = serializers.FloatField()
+    # insurance_premium = serializers.FloatField(default=None, allow_null=True)
+    # insurance_sum = serializers.FloatField(default=None, allow_null=True)
 
     def validate(self, data):
         """
@@ -47,5 +50,17 @@ class CalculatorInputSerializer(serializers.Serializer):
 
         if data['insurance_premium_supplement'] >= 1:
             raise serializers.ValidationError('Insurance premium supplement must be less than 1.')
+
+        if data['insurance_premium'] is not None and data['insurance_premium'] <= 0:
+            raise serializers.ValidationError('Insurance premium must be greater than 0.')
+
+        if data['insurance_premium'] <= 0:
+            raise serializers.ValidationError('Insurance premium must be greater than 0.')
+
+        # if data['insurance_premium'] is not None and data['insurance_premium'] <= 0:
+        #     raise serializers.ValidationError('Insurance premium must be greater than 0.')
+
+        # if data['insurance_sum'] is not None and data['insurance_sum'] <= 0:
+        #     raise serializers.ValidationError('Insurance sum must be greater than 0.')
 
         return data
