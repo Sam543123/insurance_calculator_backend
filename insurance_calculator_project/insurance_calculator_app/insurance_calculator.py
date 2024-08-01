@@ -472,12 +472,10 @@ class InsuranceCalculator:
         # maximum insurance period in years
         # TODO change calculate_tariffs function for life insurance
         if insurance_type == 'пожизненное страхование':
-            maximum_period = 1
-        # # TODO change calculate_tariffs function for accumulative insurance
-        # elif insurance_type == 'чисто накопительное страхование':
-        #     maximum_period
+            maximum_period_years = 1
         else:
             maximum_period = params['maximum_insurance_period']
+            maximum_period_years = maximum_period // 12
 
         base_new_params_dict = {
             'insurance_type': insurance_type,
@@ -491,7 +489,7 @@ class InsuranceCalculator:
         if insurance_type != 'чисто накопительное страхование':
             for x in range(start_age, end_age + 1):
                 tarifs_table.append([])
-                for n in range(1, maximum_period + 1):
+                for n in range(1, maximum_period_years + 1):
                     if x + n <= 101:
                         if insurance_type != 'пожизненное страхование':
                             new_params_dict = {
