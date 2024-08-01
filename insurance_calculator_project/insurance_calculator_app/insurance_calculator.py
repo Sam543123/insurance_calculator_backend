@@ -1,3 +1,4 @@
+from io import BytesIO
 from math import ceil, log
 
 import openpyxl
@@ -34,7 +35,7 @@ class InsuranceCalculator:
                 elif j == 7:
                     self.qx_f.append(cell.value)
 
-    def create_tarifs_table(self, filename_table, tarifs_matrix,
+    def create_tarifs_table(self, tarifs_matrix,
                             type_of_insuranse, time_of_payment, gender, first_age, income, f):
         a = len(tarifs_matrix)
         b = len(tarifs_matrix[0])
@@ -138,13 +139,11 @@ class InsuranceCalculator:
                     cell.style = 'tableText'
                     cell.value = tarifs_matrix[i - 1][j - 2]
 
-        tarifs_table.save(filename_table)
-        # try:
-        #     tarifs_table.save(filename_table)
-        # except PermissionError:
-        #     messagebox.showwarning("Ошибка создания файла",
-        #                            'Закройте файл %s и повторите операцию, чтобы перезаписать его содержимое.' %
-        #                            filename_table.split('/')[-1])
+        # Saving Excel file in memory
+        output = BytesIO()
+        tarifs_table.save(output)
+        output.seek(0)
+        return output
 
     def calculate(self, params):
         excluded_fields = {'birth_date', 'insurance_start_date'}
@@ -491,7 +490,7 @@ class InsuranceCalculator:
                             new_params_dict = {
                                 'insurance_start_age': 12 * x,
                                 'insurance_end_age': 12 * x + 12 * n,
-                                'insurance_period_years': 12 * n,
+                                'insurance_period': 12 * n,
                                 'insurance_premium': -1,
                                 'insurance_sum': 100,
                                 **base_new_params_dict
@@ -532,6 +531,6 @@ class InsuranceCalculator:
                 tarifs_table[0][0] = 100
 
         # TODO create excel file in memory and send to frontend
-        file_name = 'test'
-        self.create_tarifs_table(file_name, tarifs_table,
+        file = self.create_tarifs_table(tarifs_table,
                                  insurance_type, insurance_premium_frequency, gender, start_age, i, f)
+        return file

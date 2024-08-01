@@ -51,7 +51,7 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
 class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
     insurance_start_age = serializers.IntegerField(min_value=0)
     insurance_end_age = serializers.IntegerField(min_value=0)
-    insurance_period = serializers.IntegerField()
+    maximum_insurance_period = serializers.IntegerField()
 
     def validate(self, data):
         """
@@ -60,8 +60,8 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
         super().validate(data)
 
-        if data['insurance_period'] <= 0:
-            raise serializers.ValidationError('Insurance period must be greater than 0.')
+        if data['maximum_insurance_period'] <= 0:
+            raise serializers.ValidationError('Maximum insurance period must be greater than 0.')
 
         return data
 

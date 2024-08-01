@@ -1,5 +1,6 @@
 import os
 
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -44,6 +45,7 @@ def calculate_tariffs(request):
     serializer = TariffCalculatorInputSerializer(data=request.data)
     if serializer.is_valid():
         calculator = InsuranceCalculator(os.path.join(os.path.dirname(__file__), 'data_files', 'life_table.xlsx'))
-        result = calculator.calculate_tariffs(serializer.validated_data)
-        return Response({'result': result})
+        file = calculator.calculate_tariffs(serializer.validated_data)
+        response = HttpResponse(file, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8')
+        return response
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
