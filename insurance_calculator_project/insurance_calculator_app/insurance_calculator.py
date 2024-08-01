@@ -166,8 +166,10 @@ class InsuranceCalculator:
         i = params['insurance_premium_rate']
         # insurance_loading
         f = params['insurance_loading']
-        insurance_premium = params.get('insurance_premium', -1)
-        insurance_sum = params.get('insurance_sum', -1)
+        # TODO improve
+        # "or -1" is hotfix for calculating reserves
+        insurance_premium = params.get('insurance_premium', -1) or -1
+        insurance_sum = params.get('insurance_sum', -1) or -1
         insurance_period = params['insurance_period']
 
         start_age = params['insurance_start_age']
@@ -335,9 +337,14 @@ class InsuranceCalculator:
         # insurance_loading
         f = params['insurance_loading']
         # insurance_premium
-        A = params['insurance_premium'] if params['insurance_premium'] is not None else -1
+        A = params['insurance_premium']
         # insurance_sum
-        B = params['insurance_sum'] if params['insurance_sum'] is not None else -1
+        B = params['insurance_sum']
+        if A is None:
+            A = self.calculate(params)
+        #     if is None
+        else:
+            B = self.calculate(params)
         insurance_period = params['insurance_period']
         reserve_period = params['reserve_calculation_period']
 
