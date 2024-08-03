@@ -67,9 +67,9 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
 
 class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
-    birth_date = serializers.DateField()
-    insurance_start_date = serializers.DateField()
-    insurance_period = serializers.IntegerField()
+    birth_date = serializers.DateField(default=None)
+    insurance_start_date = serializers.DateField(default=None)
+    insurance_period = serializers.IntegerField(default=None)
 
     def validate(self, data):
         """
@@ -78,13 +78,13 @@ class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
         super().validate(data)
 
-        if data['birth_date'] > datetime.today().date():
+        if data['birth_date'] and data['birth_date'] > datetime.today().date():
             raise serializers.ValidationError('Birth date can\'t be later than current moment.')
 
-        if data['birth_date'] > data['insurance_start_date']:
+        if (data['birth_date'] and data['insurance_start_date']) and data['birth_date'] > data['insurance_start_date']:
             raise serializers.ValidationError('Birth date can\'t be later than insurance start date.')
 
-        if data['insurance_period'] <= 0:
+        if data['insurance_period'] is not None and data['insurance_period'] <= 0:
             raise serializers.ValidationError('Insurance period must be greater than 0.')
 
         return data
@@ -123,8 +123,8 @@ class SumCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
 
 
 class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
-    insurance_premium = serializers.FloatField(default=None, allow_null=True)
-    insurance_sum = serializers.FloatField(default=None, allow_null=True)
+    insurance_premium = serializers.FloatField(default=None)
+    insurance_sum = serializers.FloatField(default=None)
     reserve_calculation_period = serializers.IntegerField()
 
     def validate(self, data):
@@ -146,5 +146,9 @@ class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
         if data['reserve_calculation_period'] == 0:
             raise serializers.ValidationError(
                 'Time from start of insurance to insurance reserve calculation must be greater than 0.')
+
+        if data['reserve_calculation_period'] >= data['insurance_period']:
+            raise serializers.ValidationError(
+                'Time from start of insurance to insurance reserve calculation must be less than insurance period.')
 
         return data

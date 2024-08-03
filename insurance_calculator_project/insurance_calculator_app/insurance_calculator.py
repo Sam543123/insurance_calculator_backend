@@ -151,7 +151,12 @@ class InsuranceCalculator:
 
         delta = relativedelta(params['insurance_start_date'], params['birth_date'])
         start_age = delta.months + delta.years * 12
-        end_age = start_age + params['insurance_period']
+        # TODO fix calculating for whole life insurance
+        if params['insurance_period'] is None:
+            end_age = 1212
+            new_params['insurance_period'] = end_age - start_age
+        else:
+            end_age = start_age + params['insurance_period']
 
         new_params['insurance_start_age'] = start_age
         new_params['insurance_end_age'] = end_age
@@ -344,13 +349,20 @@ class InsuranceCalculator:
         #     if is None
         else:
             B = self.calculate(params)
-        insurance_period = params['insurance_period']
+
         reserve_period = params['reserve_calculation_period']
 
         # TODO check it later
         delta = relativedelta(insurance_start_date, birth_date)
         age_start = delta.months + delta.years * 12
-        age_end = age_start + insurance_period
+
+        # TODO hotfix for whole life insurance (change it later)
+        if params['insurance_period'] is None:
+            age_end = 1212
+            insurance_period = age_end - age_start
+        else:
+            insurance_period = params['insurance_period']
+            age_end = age_start + insurance_period
 
         V = -1
         lx = []
