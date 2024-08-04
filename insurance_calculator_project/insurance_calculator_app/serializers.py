@@ -28,7 +28,7 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
     insurance_type = serializers.ChoiceField(choices=INSURANCE_TYPE_CHOICES)
     insurance_premium_frequency = serializers.ChoiceField(choices=PAYMENT_FREQUENCY_CHOICES)
     gender = serializers.ChoiceField(choices=GENDER_CHOICES)
-    insurance_premium_rate = serializers.FloatField()
+    insurance_premium_rate = serializers.FloatField(min_value=0)
     insurance_loading = serializers.FloatField()
 
     def validate(self, data):
@@ -59,6 +59,9 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
         """
 
         super().validate(data)
+
+        if (data['insurance_start_age'] and data['insurance_end_age']) and data['insurance_start_age'] > data['insurance_end_age']:
+            raise serializers.ValidationError('Age of insurance start can\'t be greater than age of insurance end.')
 
         if data['maximum_insurance_period'] <= 0:
             raise serializers.ValidationError('Maximum insurance period must be greater than 0.')
