@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'insurance_calculator_app'
+    'insurance_calculator_app',
+    'adrf'
 ]
 
 MIDDLEWARE = [

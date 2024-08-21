@@ -2,4 +2,6 @@ django==5.0.6
 djangorestframework==3.15.2
 django-cors-headers==4.4.0
 python-dateutil
+uvicorn
+adrf==0.1.7
 

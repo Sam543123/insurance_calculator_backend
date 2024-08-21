@@ -17,7 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from insurance_calculator_app.views import test_io_bound_route, test_cpu_bound_route, test_async_io_bound_route
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('calculate/', include('insurance_calculator_app.urls'))
+    path('calculate/', include('insurance_calculator_app.urls')),
+    path('test_io_bound_route/', test_io_bound_route),
+    path('test_cpu_bound_route/', test_cpu_bound_route),
+    path('test_async_io_bound_route/', test_async_io_bound_route),
 ]
