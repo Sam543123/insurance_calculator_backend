@@ -14,8 +14,8 @@ from insurance_calculator_app.serializers import SumCalculatorInputSerializer, P
 def calculate_insurance_premium(request):
     serializer = PremiumCalculatorInputSerializer(data=request.data)
     if serializer.is_valid():
-        calculator = InsuranceCalculator(os.path.join(os.path.dirname(__file__), 'data_files', 'life_table.xlsx'))
-        result = calculator.calculate(serializer.validated_data)
+        calculator = InsuranceCalculator()
+        result = calculator.calculate_premium(**serializer.validated_data)
         return Response({'result': result})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -24,8 +24,8 @@ def calculate_insurance_premium(request):
 def calculate_insurance_sum(request):
     serializer = SumCalculatorInputSerializer(data=request.data)
     if serializer.is_valid():
-        calculator = InsuranceCalculator(os.path.join(os.path.dirname(__file__), 'data_files', 'life_table.xlsx'))
-        result = calculator.calculate(serializer.validated_data)
+        calculator = InsuranceCalculator()
+        result = calculator.calculate_insurance_sum(**serializer.validated_data)
         return Response({'result': result})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -34,8 +34,8 @@ def calculate_insurance_sum(request):
 def calculate_reserve(request):
     serializer = ReserveCalculatorInputSerializer(data=request.data)
     if serializer.is_valid():
-        calculator = InsuranceCalculator(os.path.join(os.path.dirname(__file__), 'data_files', 'life_table.xlsx'))
-        result = calculator.calculate_reserve(serializer.validated_data)
+        calculator = InsuranceCalculator()
+        result = calculator.calculate_reserve(**serializer.validated_data)
         return Response({'result': result})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -44,8 +44,9 @@ def calculate_reserve(request):
 def calculate_tariffs(request):
     serializer = TariffCalculatorInputSerializer(data=request.data)
     if serializer.is_valid():
-        calculator = InsuranceCalculator(os.path.join(os.path.dirname(__file__), 'data_files', 'life_table.xlsx'))
-        file = calculator.calculate_tariffs(serializer.validated_data)
-        response = HttpResponse(file, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8')
+        calculator = InsuranceCalculator()
+        tariffs_table_file = calculator.calculate_tariffs(**serializer.validated_data)
+        response = HttpResponse(tariffs_table_file,
+                                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8')
         return response
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

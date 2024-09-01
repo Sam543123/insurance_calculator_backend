@@ -51,7 +51,7 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
 class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
     insurance_start_age = serializers.IntegerField(min_value=0)
     insurance_end_age = serializers.IntegerField(min_value=0)
-    maximum_insurance_period = serializers.IntegerField()
+    maximum_insurance_period = serializers.IntegerField(default=None)
 
     def validate(self, data):
         """
@@ -63,7 +63,7 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
         if (data['insurance_start_age'] and data['insurance_end_age']) and data['insurance_start_age'] > data['insurance_end_age']:
             raise serializers.ValidationError('Age of insurance start can\'t be greater than age of insurance end.')
 
-        if data['maximum_insurance_period'] <= 0:
+        if data['maximum_insurance_period'] is not None and data['maximum_insurance_period'] <= 0:
             raise serializers.ValidationError('Maximum insurance period must be greater than 0.')
 
         return data
@@ -150,7 +150,7 @@ class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
             raise serializers.ValidationError(
                 'Time from start of insurance to insurance reserve calculation must be greater than 0.')
 
-        if data['reserve_calculation_period'] >= data['insurance_period']:
+        if data['insurance_period'] and data['reserve_calculation_period'] >= data['insurance_period']:
             raise serializers.ValidationError(
                 'Time from start of insurance to insurance reserve calculation must be less than insurance period.')
 
