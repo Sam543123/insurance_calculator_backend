@@ -1,6 +1,7 @@
 from abc import ABC
 from datetime import datetime
 
+from dateutil.relativedelta import relativedelta
 from rest_framework import serializers
 
 from insurance_calculator_app.utils import to_snake_case
@@ -49,9 +50,13 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
 
 
 class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
+
     insurance_start_age = serializers.IntegerField(min_value=0)
+    """Insurance start age in years"""
     insurance_end_age = serializers.IntegerField(min_value=0)
+    """Insurance end age in years"""
     maximum_insurance_period = serializers.IntegerField(default=None)
+    """Maximum insurance period in months"""
 
     def validate(self, data):
         """
@@ -60,11 +65,18 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
         super().validate(data)
 
-        if (data['insurance_start_age'] and data['insurance_end_age']) and data['insurance_start_age'] > data['insurance_end_age']:
+        if (data['insurance_start_age'] is not None and data['insurance_end_age'] is not None) and data['insurance_start_age'] > data['insurance_end_age']:
             raise serializers.ValidationError('Age of insurance start can\'t be greater than age of insurance end.')
+
+        if data['insurance_end_age'] is not None and data['insurance_end_age'] > 100:
+            raise serializers.ValidationError('Age of insurance end can\'t be greater than 100.')
 
         if data['maximum_insurance_period'] is not None and data['maximum_insurance_period'] <= 0:
             raise serializers.ValidationError('Maximum insurance period must be greater than 0.')
+
+        if (data['insurance_end_age'] is not None and data['maximum_insurance_period'] is not None) and (data['maximum_insurance_period'] + 12 * data['insurance_end_age']) > 1212:
+            raise serializers.ValidationError(
+                "Sum of maximum insurance age and maximum insurance period can't be greater than 101 year.")
 
         return data
 
@@ -89,6 +101,13 @@ class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
         if data['insurance_period'] is not None and data['insurance_period'] <= 0:
             raise serializers.ValidationError('Insurance period must be greater than 0.')
+
+        if data['insurance_period'] is not None and data['birth_date'] and data['insurance_start_date']:
+            date_difference = relativedelta(data['insurance_start_date'], data['birth_date'])
+            end_age = 12 * date_difference.years + date_difference.months + data['insurance_period']
+            if end_age > 1212 or (end_age == 1212 and date_difference.days != 0):
+                raise serializers.ValidationError(
+                    'Age of insured person at the end of insurance period can\'t be greater than 101.')
 
         return data
 
