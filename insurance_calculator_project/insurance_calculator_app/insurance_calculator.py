@@ -40,7 +40,7 @@ class InsuranceCalculator:
         start_age = delta.months + delta.years * 12
         processed_insurance_period = insurance_period
         # TODO fix calculating for whole life insurance
-        if self.insurance_type == "пожизненное страхование":
+        if self.insurance_type == "whole life insurance":
             end_age = 1212
             processed_insurance_period = end_age - start_age
         age_lower_border = start_age // 12
@@ -54,7 +54,7 @@ class InsuranceCalculator:
         self.__parse_common_params(insurance_type, insurance_premium_frequency, gender,
                                    insurance_premium_rate, insurance_loading)
         processed_maximum_insurance_period = maximum_insurance_period
-        if self.insurance_type == "пожизненное страхование":
+        if self.insurance_type == "whole life insurance":
             end_age = 1212
             processed_maximum_insurance_period = end_age - insurance_start_age
         age_lower_border = insurance_start_age
@@ -64,7 +64,7 @@ class InsuranceCalculator:
 
     def __init_life_table_metrics(self, age_lower_border, age_higher_border):
         age_field = 'age'
-        if self.gender == "мужской":
+        if self.gender == "male":
             lx_field, dx_field = 'men_survived_to_age', 'men_died_at_age'
         else:
             lx_field, dx_field = 'women_survived_to_age', 'women_died_at_age'
@@ -116,16 +116,16 @@ class InsuranceCalculator:
                                         reserve_calculation_period, start_age)
 
     def __calculate_reserve(self, insurance_sum, insurance_premium, insurance_period, reserve_period, start_age):
-        if self.insurance_type != "чисто накопительное страхование":
+        if self.insurance_type != "cumulative insurance":
             l_t = self.__fractional_lx(start_age + reserve_period)
         if insurance_premium is None:
             insurance_premium = self.__calculate_premium(insurance_sum, insurance_period, start_age)
         else:
             insurance_sum = self.__calculate_insurance_sum(insurance_premium, insurance_period, start_age)
 
-        if self.insurance_type in ("чистое дожитие", "чисто накопительное страхование"):
+        if self.insurance_type in ("pure endowment", "cumulative insurance"):
             premium_annuity = self.__calculate_premium_annuity(insurance_period=reserve_period, start_age=start_age)
-            if self.insurance_type == "чистое дожитие":
+            if self.insurance_type == "pure endowment":
                 reserve = insurance_premium * (1 - self.f) * premium_annuity / (l_t * self.v ** (reserve_period / 12))
             else:
                 reserve = insurance_premium * (1 - self.f) * premium_annuity / (self.v ** (reserve_period / 12))
@@ -142,23 +142,23 @@ class InsuranceCalculator:
     def __calculate_premium_annuity(self, insurance_period, start_age=None, skip_period=0):
         # TODO review calculations later
         annuity_cost = 0
-        if self.insurance_premium_frequency == "единовременно" and skip_period == 0:
-            if self.insurance_type != "чисто накопительное страхование":
+        if self.insurance_premium_frequency == "simultaneously" and skip_period == 0:
+            if self.insurance_type != "cumulative insurance":
                 annuity_cost = self.__fractional_lx(start_age)
             else:
                 annuity_cost = 1
-        elif self.insurance_premium_frequency == "ежегодно":
+        elif self.insurance_premium_frequency == "annually":
             for j, year in enumerate(range(ceil(skip_period / 12), ceil(insurance_period / 12))):
                 discount_factor = self.v ** j
-                if self.insurance_type != "чисто накопительное страхование":
+                if self.insurance_type != "cumulative insurance":
                     l_fraq = self.__fractional_lx(start_age + 12 * year)
                     annuity_cost += discount_factor * l_fraq
                 else:
                     annuity_cost += discount_factor
-        elif self.insurance_premium_frequency == "ежемесячно":
+        elif self.insurance_premium_frequency == "monthly":
             for j, month in enumerate(range(skip_period, insurance_period)):
                 discount_factor = self.v ** (j / 12)
-                if self.insurance_type != "чисто накопительное страхование":
+                if self.insurance_type != "cumulative insurance":
                     l_fraq = self.__fractional_lx(start_age + month)
                     annuity_cost += discount_factor * l_fraq
                 else:
@@ -169,9 +169,9 @@ class InsuranceCalculator:
     def __calculate_insurance_sum_annuity(self, insurance_period, start_age=None, skip_period=0):
         # TODO review calculations later
         annuity_cost = 0
-        if self.insurance_type == "чисто накопительное страхование":
+        if self.insurance_type == "cumulative insurance":
             annuity_cost = self.v ** ((insurance_period - skip_period) / 12)
-        elif self.insurance_type == "чистое дожитие":
+        elif self.insurance_type == "pure endowment":
             l_end = self.__fractional_lx(start_age + insurance_period)
             annuity_cost = self.v ** ((insurance_period - skip_period) / 12) * l_end
         else:
@@ -184,7 +184,8 @@ class InsuranceCalculator:
                 d_end = self.__fractional_dx(start_age + skip_period + 12 * ((insurance_period - skip_period) // 12))
                 if self.i != 0:
                     annuity_cost += self.v ** ((insurance_period - skip_period) // 12 + 1) * d_end * (
-                            (1 + self.i) - (1 + self.i) ** (1 - ((insurance_period - skip_period) % 12) / 12)) / log(1 + self.i)
+                            (1 + self.i) - (1 + self.i) ** (1 - ((insurance_period - skip_period) % 12) / 12)) / log(
+                        1 + self.i)
                 else:
                     annuity_cost += self.v ** ((insurance_period - skip_period) // 12 + 1) * d_end * (
                             (insurance_period - skip_period) % 12) / 12
@@ -199,29 +200,33 @@ class InsuranceCalculator:
 
     def calculate_tariffs(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
                           insurance_premium_rate: float, insurance_loading: float,
-                          insurance_start_age: int, insurance_end_age: int, maximum_insurance_period: int):
-        processed_maximum_insurance_period = self.__parse_tariffs_params(insurance_type, insurance_premium_frequency, gender,
-                                                                            insurance_premium_rate, insurance_loading,
-                                                                            insurance_start_age, insurance_end_age,
-                                                                            maximum_insurance_period)
-        return self.__calculate_tariffs(insurance_start_age, insurance_end_age, processed_maximum_insurance_period)
+                          insurance_minimum_start_age: int, insurance_maximum_start_age: int, maximum_insurance_period: int):
+        processed_maximum_insurance_period = self.__parse_tariffs_params(insurance_type, insurance_premium_frequency,
+                                                                         gender,
+                                                                         insurance_premium_rate, insurance_loading,
+                                                                         insurance_minimum_start_age,
+                                                                         insurance_maximum_start_age,
+                                                                         maximum_insurance_period)
+
+        return self.__calculate_tariffs(insurance_minimum_start_age, insurance_maximum_start_age,
+                                        processed_maximum_insurance_period)
 
     def __calculate_tariffs(self, minimum_start_age: int, maximum_start_age: int, maximum_period: Optional[int]):
-        if self.insurance_type != 'пожизненное страхование':
+        if self.insurance_type != 'whole life insurance':
             tariffs_table_column_count = maximum_period // 12
         else:
             tariffs_table_column_count = 1
         tariffs_insurance_sum = 100
         tariffs_table = []
-        if self.insurance_type != 'чисто накопительное страхование':
+        if self.insurance_type != 'cumulative insurance':
             for x in range(minimum_start_age, maximum_start_age + 1):
                 start_age = 12 * x
                 tariffs_table.append([])
                 for n in range(1, tariffs_table_column_count + 1):
-                    if self.insurance_type == 'пожизненное страхование':
+                    if self.insurance_type == 'whole life insurance':
                         insurance_period = 1212 - 12 * x
                         tariff = self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age)
-                    elif self.insurance_type == 'пожизненное страхование' or x + n <= 101:
+                    elif self.insurance_type == 'whole life insurance' or x + n <= 101:
                         insurance_period = 12 * n
                         tariff = self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age)
                     else:
@@ -246,8 +251,8 @@ class InsuranceCalculator:
         a = len(tariffs_table)
         b = len(tariffs_table[0])
         tariffs_page = openpyxl.Workbook()
-        tariffs_page.worksheets[0].title = 'Тарифы'
-        work_sheet = tariffs_page['Тарифы']
+        tariffs_page.worksheets[0].title = 'Tariffs'
+        work_sheet = tariffs_page['Tariffs']
 
         ns = NamedStyle(name='tableText')
         ns.font = Font(name='Times New Roman', size=12)
@@ -280,12 +285,16 @@ class InsuranceCalculator:
         h2font = Font(name='Times New Roman', size=14)
 
         work_sheet['A1'].font = hfont
-        work_sheet['A1'] = 'Таблица величин тарифов в %% со ставкой доходности %0.2f %%  и нагрузкой %0.2f %%' % (
+        # work_sheet['A1'] = 'Таблица величин тарифов в %% со ставкой доходности %0.2f %%  и нагрузкой %0.2f %%' % (
+        #     100 * self.i, 100 * self.f)
+        work_sheet['A1'] = 'Tariffs table in %% with insurance premium rate %0.2f %% and loading %0.2f %%' % (
             100 * self.i, 100 * self.f)
-        work_sheet['A2'] = 'Тип страхования: %s' % self.insurance_type
-        work_sheet['A3'] = 'Периодичность уплаты взносов: %s' % self.insurance_premium_frequency
+        # work_sheet['A2'] = 'Тип страхования: %s' % self.insurance_type
+        work_sheet['A2'] = 'Insurance type: %s' % self.insurance_type
+        # work_sheet['A3'] = 'Периодичность уплаты взносов: %s' % self.insurance_premium_frequency
+        work_sheet['A3'] = 'Payment frequency: %s' % self.insurance_premium_frequency
 
-        if self.insurance_type != 'чисто накопительное страхование':
+        if self.insurance_type != 'cumulative insurance':
             work_sheet.column_dimensions['A'].width = 21
             if b == 1:
                 work_sheet.column_dimensions['B'].width = 20
@@ -294,17 +303,20 @@ class InsuranceCalculator:
             work_sheet.row_dimensions[3].height = 40
             work_sheet.row_dimensions[4].height = 20
             work_sheet.row_dimensions[5].height = 50
-            if self.insurance_type != 'пожизненное страхование':
+            if self.insurance_type != 'whole life insurance':
                 work_sheet.row_dimensions[6].height = 20
             work_sheet['A5'].alignment = Alignment(wrapText=True, horizontal='center', vertical='center')
             work_sheet['B5'].alignment = Alignment(wrapText=True, horizontal='center', vertical='center')
             work_sheet['B5'].font = h2font
-            work_sheet['A4'] = 'Пол застрахованного: %s' % self.gender
+            # work_sheet['A4'] = 'Пол застрахованного: %s' % self.gender
+            work_sheet['A4'] = 'Gender of the insured person: %s' % self.gender
             work_sheet['A5'].font = h2font
-            work_sheet['A5'] = 'Возраст застрахованного'
-            if self.insurance_type != 'пожизненное страхование':
+            # work_sheet['A5'] = 'Возраст застрахованного'
+            work_sheet['A5'] = 'Age of the insured person'
+            if self.insurance_type != 'whole life insurance':
                 work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=b + 1)
-                work_sheet['B5'] = 'Период страхования (лет)'
+                # work_sheet['B5'] = 'Период страхования (лет)'
+                work_sheet['B5'] = 'Insurance period (years)'
                 for j in range(1, b + 1):
                     cell = work_sheet.cell(row=6, column=j + 1)
                     cell.style = 'tableText'
@@ -312,7 +324,8 @@ class InsuranceCalculator:
             else:
                 work_sheet.row_dimensions[5].height = 30
                 work_sheet.merge_cells(start_column=2, start_row=5, end_column=2, end_row=6)
-                work_sheet['B5'] = 'Величина тарифа'
+                # work_sheet['B5'] = 'Величина тарифа'
+                work_sheet['B5'] = 'Tariff'
 
             for i in range(1, a + 1):
                 cell = work_sheet.cell(row=i + 6, column=1)
@@ -325,11 +338,14 @@ class InsuranceCalculator:
 
         else:
             work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=b + 1)
-            work_sheet['A4'] = 'Период страхования (лет, месяцев)'
+            # work_sheet['A4'] = 'Период страхования (лет, месяцев)'
+            work_sheet['A4'] = 'Insurance period (years, months)'
             work_sheet['A5'].font = h2font
-            work_sheet['A5'] = 'Год'
+            # work_sheet['A5'] = 'Год'
+            work_sheet['A5'] = 'Year'
             work_sheet['B5'].font = h2font
-            work_sheet['B5'] = 'Месяц'
+            # work_sheet['B5'] = 'Месяц'
+            work_sheet['B5'] = 'Month'
 
             for j in range(2, b + 2):
                 cell = work_sheet.cell(row=6, column=j)
