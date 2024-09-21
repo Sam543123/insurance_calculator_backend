@@ -50,16 +50,18 @@ class InsuranceCalculator:
 
     def __parse_tariffs_params(self, insurance_type: str, insurance_premium_frequency: str,
                                gender: str, insurance_premium_rate: float, insurance_loading: float,
-                               insurance_start_age, insurance_end_age, maximum_insurance_period):
+                               maximum_insurance_start_age: Optional[int], minimum_insurance_start_age: Optional[int],
+                               maximum_insurance_period: Optional[int]):
         self.__parse_common_params(insurance_type, insurance_premium_frequency, gender,
                                    insurance_premium_rate, insurance_loading)
         processed_maximum_insurance_period = maximum_insurance_period
         if self.insurance_type == "whole life insurance":
             end_age = 1212
-            processed_maximum_insurance_period = end_age - insurance_start_age
-        age_lower_border = insurance_start_age
-        age_higher_border = insurance_end_age + processed_maximum_insurance_period // 12
-        self.__init_life_table_metrics(age_lower_border, age_higher_border)
+            processed_maximum_insurance_period = end_age - maximum_insurance_start_age
+        if self.insurance_type != "cumulative insurance":
+            age_lower_border = maximum_insurance_start_age
+            age_higher_border = minimum_insurance_start_age + processed_maximum_insurance_period // 12
+            self.__init_life_table_metrics(age_lower_border, age_higher_border)
         return processed_maximum_insurance_period
 
     def __init_life_table_metrics(self, age_lower_border, age_higher_border):
@@ -200,18 +202,18 @@ class InsuranceCalculator:
 
     def calculate_tariffs(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
                           insurance_premium_rate: float, insurance_loading: float,
-                          insurance_minimum_start_age: int, insurance_maximum_start_age: int, maximum_insurance_period: int):
+                          minimum_insurance_start_age: Optional[int], maximum_insurance_start_age: Optional[int], maximum_insurance_period: int):
         processed_maximum_insurance_period = self.__parse_tariffs_params(insurance_type, insurance_premium_frequency,
                                                                          gender,
                                                                          insurance_premium_rate, insurance_loading,
-                                                                         insurance_minimum_start_age,
-                                                                         insurance_maximum_start_age,
+                                                                         minimum_insurance_start_age,
+                                                                         maximum_insurance_start_age,
                                                                          maximum_insurance_period)
 
-        return self.__calculate_tariffs(insurance_minimum_start_age, insurance_maximum_start_age,
+        return self.__calculate_tariffs(minimum_insurance_start_age, maximum_insurance_start_age,
                                         processed_maximum_insurance_period)
 
-    def __calculate_tariffs(self, minimum_start_age: int, maximum_start_age: int, maximum_period: Optional[int]):
+    def __calculate_tariffs(self, minimum_start_age: Optional[int], maximum_start_age: Optional[int], maximum_period: Optional[int]):
         if self.insurance_type != 'whole life insurance':
             tariffs_table_column_count = maximum_period // 12
         else:
