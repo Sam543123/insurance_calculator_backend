@@ -59,18 +59,18 @@ class InsuranceCalculator:
             end_age = 1212
             processed_maximum_insurance_period = end_age - maximum_insurance_start_age
         if self.insurance_type != "cumulative insurance":
-            age_lower_border = maximum_insurance_start_age
-            age_higher_border = minimum_insurance_start_age + processed_maximum_insurance_period // 12
-            self.__init_life_table_metrics(age_lower_border, age_higher_border)
+            lower_age_border = maximum_insurance_start_age
+            higher_age_border = minimum_insurance_start_age + processed_maximum_insurance_period // 12
+            self.__init_life_table_metrics(lower_age_border, higher_age_border)
         return processed_maximum_insurance_period
 
-    def __init_life_table_metrics(self, age_lower_border, age_higher_border):
+    def __init_life_table_metrics(self, lower_age_border, higher_age_border):
         age_field = 'age'
         if self.gender == "male":
             lx_field, dx_field = 'men_survived_to_age', 'men_died_at_age'
         else:
             lx_field, dx_field = 'women_survived_to_age', 'women_died_at_age'
-        filter_conditions = {f'{age_field}__gte': age_lower_border, f'{age_field}__lte': age_higher_border}
+        filter_conditions = {f'{age_field}__gte': lower_age_border, f'{age_field}__lte': higher_age_border}
         life_table_records = LifeTable.objects.filter(**filter_conditions).values(age_field, lx_field, dx_field)
         for r in life_table_records:
             self.lx[r[age_field]] = r[lx_field]
