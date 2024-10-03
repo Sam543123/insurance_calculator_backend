@@ -7,6 +7,8 @@ from dateutil.relativedelta import relativedelta
 from openpyxl.styles import Alignment, NamedStyle, Font, Side, Border
 import datetime as dt
 
+from openpyxl.workbook import Workbook
+
 from insurance_calculator_app.models import LifeTable
 
 
@@ -39,7 +41,6 @@ class InsuranceCalculator:
         delta = relativedelta(insurance_start_date, birth_date)
         start_age = delta.months + delta.years * 12
         processed_insurance_period = insurance_period
-        # TODO fix calculating for whole life insurance
         if self.insurance_type == "whole life insurance":
             end_age = 1212
             processed_insurance_period = end_age - start_age
@@ -142,7 +143,6 @@ class InsuranceCalculator:
         return reserve
 
     def __calculate_premium_annuity(self, insurance_period, start_age=None, skip_period=0):
-        # TODO review calculations later
         annuity_cost = 0
         if self.insurance_premium_frequency == "simultaneously" and skip_period == 0:
             if self.insurance_type != "cumulative insurance":
@@ -169,7 +169,6 @@ class InsuranceCalculator:
         return annuity_cost
 
     def __calculate_insurance_sum_annuity(self, insurance_period, start_age=None, skip_period=0):
-        # TODO review calculations later
         annuity_cost = 0
         if self.insurance_type == "cumulative insurance":
             annuity_cost = self.v ** ((insurance_period - skip_period) / 12)
@@ -202,7 +201,8 @@ class InsuranceCalculator:
 
     def calculate_tariffs(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
                           insurance_premium_rate: float, insurance_loading: float,
-                          minimum_insurance_start_age: Optional[int], maximum_insurance_start_age: Optional[int], maximum_insurance_period: int):
+                          minimum_insurance_start_age: Optional[int], maximum_insurance_start_age: Optional[int],
+                          maximum_insurance_period: int):
         processed_maximum_insurance_period = self.__parse_tariffs_params(insurance_type, insurance_premium_frequency,
                                                                          gender,
                                                                          insurance_premium_rate, insurance_loading,
@@ -213,7 +213,8 @@ class InsuranceCalculator:
         return self.__calculate_tariffs(minimum_insurance_start_age, maximum_insurance_start_age,
                                         processed_maximum_insurance_period)
 
-    def __calculate_tariffs(self, minimum_start_age: Optional[int], maximum_start_age: Optional[int], maximum_period: Optional[int]):
+    def __calculate_tariffs(self, minimum_start_age: Optional[int], maximum_start_age: Optional[int],
+                            maximum_period: Optional[int]):
         if self.insurance_type != 'whole life insurance':
             tariffs_table_column_count = maximum_period // 12
         else:
@@ -245,123 +246,97 @@ class InsuranceCalculator:
                         tariffs_table[-1].append(tariff)
                     else:
                         tariffs_table[-1].append('-')
-        # TODO create excel file in memory and send to frontend
+
         file = self.__create_tariffs_table(tariffs_table, minimum_start_age)
         return file
 
     def __create_tariffs_table(self, tariffs_table, start_age):
-        a = len(tariffs_table)
-        b = len(tariffs_table[0])
-        tariffs_page = openpyxl.Workbook()
-        tariffs_page.worksheets[0].title = 'Tariffs'
-        work_sheet = tariffs_page['Tariffs']
+        row_number = len(tariffs_table)
+        column_number = len(tariffs_table[0])
+        tariffs_page = Workbook()
+        work_sheet = tariffs_page.active
+        work_sheet.title = 'Tariffs'
 
-        ns = NamedStyle(name='tableText')
-        ns.font = Font(name='Times New Roman', size=12)
-        ns.alignment = Alignment(horizontal='center', vertical='center')
-        border = Side(style='thin', color='000000')
-        ns.border = Border(left=border, top=border, right=border, bottom=border)
+        border_side = Side(style='thin', color='000000')
+        border = Border(left=border_side, top=border_side, right=border_side, bottom=border_side)
+        header_font = Font(name='Times New Roman', size=14)
+        center_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        table_text_style = NamedStyle(name='tableText', font=Font(name='Times New Roman', size=12),
+                                      alignment=Alignment(horizontal='center', vertical='center'),
+                                      border=border)
+        table_header_style = NamedStyle(name='tableHeader', font=header_font,
+                                        alignment=center_alignment,
+                                        border=border)
 
-        ns2 = NamedStyle(name='hText')
-        ns2.font = Font(name='Times New Roman', size=14)
-        ns2.alignment = Alignment(horizontal='center', vertical='center', wrapText=True)
+        header_style = NamedStyle(name='header', font=header_font, alignment=center_alignment)
 
-        tariffs_page.add_named_style(ns)
-        tariffs_page.add_named_style(ns2)
+        tariffs_page.add_named_style(header_style)
+        tariffs_page.add_named_style(table_header_style)
+        tariffs_page.add_named_style(table_text_style)
 
-        for i in range(1, 7):
-            for j in range(1, b + 2):
-                cell = work_sheet.cell(row=i, column=j)
-                if i < 5:
-                    cell.style = 'hText'
-                else:
-                    cell.style = 'tableText'
+        for i in range(1, 5):
+            work_sheet[f'A{i}'].style = 'header'
+            work_sheet.merge_cells(start_row=i, start_column=1, end_row=i, end_column=column_number + 1)
 
-        work_sheet.merge_cells(start_row=1, start_column=1, end_row=1, end_column=b + 1)
-        work_sheet.merge_cells(start_row=2, start_column=1, end_row=2, end_column=b + 1)
-        work_sheet.merge_cells(start_row=3, start_column=1, end_row=3, end_column=b + 1)
-        work_sheet.merge_cells(start_row=4, start_column=1, end_row=4, end_column=b + 1)
-        work_sheet.merge_cells(start_column=1, start_row=5, end_column=1, end_row=6)
+        work_sheet['A5'].style = 'tableHeader'
+        work_sheet['B5'].style = 'tableHeader'
 
-        hfont = Font(name='Times New Roman', size=14, bold=True)
-        h2font = Font(name='Times New Roman', size=14)
+        work_sheet['A1'].font = Font(name='Times New Roman', size=14, bold=True)
+        work_sheet[
+            'A1'] = f'Tariffs table in % with insurance premium rate {(100 * self.i):.2f}% and loading {(100 * self.f):.2f}%'
+        work_sheet['A2'] = f'Insurance type: {self.insurance_type}'
+        work_sheet['A3'] = f'Payment frequency: {self.insurance_premium_frequency}'
 
-        work_sheet['A1'].font = hfont
-        # work_sheet['A1'] = 'Таблица величин тарифов в %% со ставкой доходности %0.2f %%  и нагрузкой %0.2f %%' % (
-        #     100 * self.i, 100 * self.f)
-        work_sheet['A1'] = 'Tariffs table in %% with insurance premium rate %0.2f %% and loading %0.2f %%' % (
-            100 * self.i, 100 * self.f)
-        # work_sheet['A2'] = 'Тип страхования: %s' % self.insurance_type
-        work_sheet['A2'] = 'Insurance type: %s' % self.insurance_type
-        # work_sheet['A3'] = 'Периодичность уплаты взносов: %s' % self.insurance_premium_frequency
-        work_sheet['A3'] = 'Payment frequency: %s' % self.insurance_premium_frequency
+        work_sheet.row_dimensions[1].height = 50
+        work_sheet.row_dimensions[2].height = 40
+        work_sheet.row_dimensions[3].height = 40
+        work_sheet.row_dimensions[4].height = 40
 
+        skipped_rows = 6
         if self.insurance_type != 'cumulative insurance':
-            work_sheet.column_dimensions['A'].width = 21
-            if b == 1:
-                work_sheet.column_dimensions['B'].width = 20
-            work_sheet.row_dimensions[1].height = 50
-            work_sheet.row_dimensions[2].height = 40
-            work_sheet.row_dimensions[3].height = 40
-            work_sheet.row_dimensions[4].height = 20
-            work_sheet.row_dimensions[5].height = 50
-            if self.insurance_type != 'whole life insurance':
-                work_sheet.row_dimensions[6].height = 20
-            work_sheet['A5'].alignment = Alignment(wrapText=True, horizontal='center', vertical='center')
-            work_sheet['B5'].alignment = Alignment(wrapText=True, horizontal='center', vertical='center')
-            work_sheet['B5'].font = h2font
-            # work_sheet['A4'] = 'Пол застрахованного: %s' % self.gender
-            work_sheet['A4'] = 'Gender of the insured person: %s' % self.gender
-            work_sheet['A5'].font = h2font
-            # work_sheet['A5'] = 'Возраст застрахованного'
+            work_sheet.column_dimensions['A'].width = 20
+            work_sheet['A4'] = f'Gender of the insured person: {self.gender}'
             work_sheet['A5'] = 'Age of the insured person'
             if self.insurance_type != 'whole life insurance':
-                work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=b + 1)
-                # work_sheet['B5'] = 'Период страхования (лет)'
+                work_sheet.row_dimensions[5].height = 30
+                work_sheet.row_dimensions[6].height = 20
+                work_sheet.merge_cells(start_row=5, start_column=1, end_row=6, end_column=1)
+                work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=column_number + 1)
                 work_sheet['B5'] = 'Insurance period (years)'
-                for j in range(1, b + 1):
+                for j in range(1, column_number + 1):
                     cell = work_sheet.cell(row=6, column=j + 1)
                     cell.style = 'tableText'
                     cell.value = j
             else:
-                work_sheet.row_dimensions[5].height = 30
-                work_sheet.merge_cells(start_column=2, start_row=5, end_column=2, end_row=6)
-                # work_sheet['B5'] = 'Величина тарифа'
+                work_sheet.row_dimensions[5].height = 50
+                work_sheet.column_dimensions['B'].width = 20
                 work_sheet['B5'] = 'Tariff'
+                skipped_rows = 5
 
-            for i in range(1, a + 1):
-                cell = work_sheet.cell(row=i + 6, column=1)
-                cell.style = 'tableText'
-                cell.value = start_age + (i - 1)
-                for j in range(2, b + 2):
-                    cell = work_sheet.cell(row=i + 6, column=j)
-                    cell.style = 'tableText'
-                    cell.value = tariffs_table[i - 1][j - 2]
+            start_first_column_value = start_age
 
         else:
-            work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=b + 1)
-            # work_sheet['A4'] = 'Период страхования (лет, месяцев)'
+            work_sheet.row_dimensions[5].height = 30
+            work_sheet.merge_cells(start_row=5, start_column=1, end_row=6, end_column=1)
+            work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=column_number + 1)
             work_sheet['A4'] = 'Insurance period (years, months)'
-            work_sheet['A5'].font = h2font
-            # work_sheet['A5'] = 'Год'
             work_sheet['A5'] = 'Year'
-            work_sheet['B5'].font = h2font
-            # work_sheet['B5'] = 'Месяц'
             work_sheet['B5'] = 'Month'
 
-            for j in range(2, b + 2):
+            for j in range(2, column_number + 2):
                 cell = work_sheet.cell(row=6, column=j)
                 cell.style = 'tableText'
                 cell.value = j - 2
+            start_first_column_value = 0
 
-            for i in range(1, a + 1):
-                cell = work_sheet.cell(row=i + 6, column=1)
+        for i in range(1, row_number + 1):
+            cell = work_sheet.cell(row=i + skipped_rows, column=1)
+            cell.style = 'tableText'
+            cell.value = start_first_column_value + (i - 1)
+            for j in range(2, column_number + 2):
+                cell = work_sheet.cell(row=i + skipped_rows, column=j)
                 cell.style = 'tableText'
-                cell.value = i - 1
-                for j in range(2, b + 2):
-                    cell = work_sheet.cell(row=i + 6, column=j)
-                    cell.style = 'tableText'
-                    cell.value = tariffs_table[i - 1][j - 2]
+                cell.value = tariffs_table[i - 1][j - 2]
 
         # Saving Excel file in memory
         output = BytesIO()

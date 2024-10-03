@@ -7,6 +7,3 @@ class LifeTable(models.Model):
     men_died_at_age = models.IntegerField()
     women_survived_to_age = models.IntegerField()
     women_died_at_age = models.IntegerField()
-
-
-# LifeTableRecord._meta.db_table = f"{LifeTableRecord._meta.app_label}_lifetable"
