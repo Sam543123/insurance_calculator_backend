@@ -10,6 +10,7 @@ import datetime as dt
 from openpyxl.workbook import Workbook
 
 from insurance_calculator_app.models import LifeTable
+from insurance_calculator_app.utils import format_number
 
 
 class InsuranceCalculator:
@@ -228,10 +229,10 @@ class InsuranceCalculator:
                 for n in range(1, tariffs_table_column_count + 1):
                     if self.insurance_type == 'whole life insurance':
                         insurance_period = 1212 - 12 * x
-                        tariff = self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age)
+                        tariff = format_number(self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age))
                     elif self.insurance_type == 'whole life insurance' or x + n <= 101:
                         insurance_period = 12 * n
-                        tariff = self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age)
+                        tariff = format_number(self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age))
                     else:
                         tariff = '-'
                     tariffs_table[-1].append(tariff)
@@ -242,10 +243,10 @@ class InsuranceCalculator:
                 for m in range(12):
                     insurance_period = 12 * n + m
                     if m + n != 0 and 12 * n + m <= maximum_period:
-                        tariff = self.__calculate_premium(tariffs_insurance_sum, insurance_period)
-                        tariffs_table[-1].append(tariff)
+                        tariff = format_number(self.__calculate_premium(tariffs_insurance_sum, insurance_period))
                     else:
-                        tariffs_table[-1].append('-')
+                        tariff = '-'
+                    tariffs_table[-1].append(tariff)
 
         file = self.__create_tariffs_table(tariffs_table, minimum_start_age)
         return file

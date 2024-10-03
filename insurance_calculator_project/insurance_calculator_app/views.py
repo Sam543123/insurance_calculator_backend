@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from insurance_calculator_app.insurance_calculator import InsuranceCalculator
 from insurance_calculator_app.serializers import SumCalculatorInputSerializer, PremiumCalculatorInputSerializer, \
     ReserveCalculatorInputSerializer, TariffCalculatorInputSerializer
+from insurance_calculator_app.utils import format_number
 
 
 @api_view(['POST'])
@@ -16,7 +17,7 @@ def calculate_insurance_premium(request):
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         result = calculator.calculate_premium(**serializer.validated_data)
-        return Response({'result': result})
+        return Response({'result': format_number(result)})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -26,7 +27,7 @@ def calculate_insurance_sum(request):
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         result = calculator.calculate_insurance_sum(**serializer.validated_data)
-        return Response({'result': result})
+        return Response({'result': format_number(result)})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -36,7 +37,7 @@ def calculate_reserve(request):
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         result = calculator.calculate_reserve(**serializer.validated_data)
-        return Response({'result': result})
+        return Response({'result': format_number(result)})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
