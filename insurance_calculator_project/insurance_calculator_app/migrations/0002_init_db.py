@@ -7,14 +7,12 @@ from django.db import migrations
 
 
 def load_initial_data(apps, schema_editor):
-    # TODO review later, maybe it is possible to write records from file to database table faster
     life_table_model = apps.get_model('insurance_calculator_app', 'LifeTable')
     life_table_file = Path(__file__).parents[1] / 'data_files' / 'life_table.csv'
     with open(life_table_file, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
-        for row in reader:
-            obj = life_table_model(**row)
-            obj.save()
+        records = [life_table_model(**row) for row in reader]
+    life_table_model.objects.bulk_create(records)
 
 
 class Migration(migrations.Migration):
