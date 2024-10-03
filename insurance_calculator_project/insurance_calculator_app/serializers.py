@@ -7,21 +7,21 @@ from rest_framework import serializers
 from insurance_calculator_app.utils import to_snake_case
 
 INSURANCE_TYPE_CHOICES = [
-    'чистое дожитие',
-    'страхование жизни на срок',
-    'чисто накопительное страхование',
-    'пожизненное страхование',
+    'pure endowment',
+    'term life insurance',
+    'whole life insurance',
+    'cumulative insurance',
 ]
 
 PAYMENT_FREQUENCY_CHOICES = [
-    'единовременно',
-    'ежегодно',
-    'ежемесячно'
+    'simultaneously',
+    'annually',
+    'monthly'
 ]
 
 GENDER_CHOICES = [
-    'мужской',
-    'женский'
+    'male',
+    'female'
 ]
 
 
@@ -50,11 +50,10 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
 
 
 class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
-
-    insurance_start_age = serializers.IntegerField(min_value=0)
-    """Insurance start age in years"""
-    insurance_end_age = serializers.IntegerField(min_value=0)
-    """Insurance end age in years"""
+    minimum_insurance_start_age = serializers.IntegerField(default=None, min_value=0)
+    """Minimum insurance start age in years"""
+    maximum_insurance_start_age = serializers.IntegerField(default=None, min_value=0)
+    """Maximum insurance start age in years"""
     maximum_insurance_period = serializers.IntegerField(default=None)
     """Maximum insurance period in months"""
 
@@ -65,18 +64,21 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
         super().validate(data)
 
-        if (data['insurance_start_age'] is not None and data['insurance_end_age'] is not None) and data['insurance_start_age'] > data['insurance_end_age']:
-            raise serializers.ValidationError('Age of insurance start can\'t be greater than age of insurance end.')
+        if (data['minimum_insurance_start_age'] is not None and data['maximum_insurance_start_age'] is not None) and \
+                data['minimum_insurance_start_age'] > data['maximum_insurance_start_age']:
+            raise serializers.ValidationError(
+                'Minimum age of insurance start can\'t be greater than maximum age of insurance start.')
 
-        if data['insurance_end_age'] is not None and data['insurance_end_age'] > 100:
-            raise serializers.ValidationError('Age of insurance end can\'t be greater than 100.')
+        if data['maximum_insurance_start_age'] is not None and data['maximum_insurance_start_age'] > 100:
+            raise serializers.ValidationError('Maximum age of insurance start can\'t be greater than 100.')
 
         if data['maximum_insurance_period'] is not None and data['maximum_insurance_period'] <= 0:
             raise serializers.ValidationError('Maximum insurance period must be greater than 0.')
 
-        if (data['insurance_end_age'] is not None and data['maximum_insurance_period'] is not None) and (data['maximum_insurance_period'] + 12 * data['insurance_end_age']) > 1212:
+        if (data['maximum_insurance_start_age'] is not None and data['maximum_insurance_period'] is not None) and (
+                data['maximum_insurance_period'] + 12 * data['maximum_insurance_start_age']) > 1212:
             raise serializers.ValidationError(
-                "Sum of maximum insurance age and maximum insurance period can't be greater than 101 year.")
+                "Sum of maximum insurance start age and maximum insurance period can't be greater than 101 year.")
 
         return data
 
