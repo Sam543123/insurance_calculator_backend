@@ -76,11 +76,12 @@ WSGI_APPLICATION = 'insurance_calculator_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
+db_path = BASE_DIR / 'db'
+db_path.mkdir(exist_ok=True)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': db_path / 'db.sqlite3',
     }
 }
 
