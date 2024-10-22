@@ -1,8 +1,7 @@
 from io import BytesIO
-from math import ceil, log, floor
+from math import ceil, log
 from typing import Optional
 
-import openpyxl
 from dateutil.relativedelta import relativedelta
 from openpyxl.styles import Alignment, NamedStyle, Font, Side, Border
 import datetime as dt
@@ -25,7 +24,7 @@ class InsuranceCalculator:
         self.lx = {}
         self.dx = {}
 
-    def __parse_common_params(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
+    def __parse_common_params(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                               insurance_premium_rate: float, insurance_loading: float):
         self.insurance_type = insurance_type
         self.insurance_premium_frequency = insurance_premium_frequency
@@ -34,7 +33,7 @@ class InsuranceCalculator:
         self.f = insurance_loading
         self.v = 1 / (1 + self.i)
 
-    def __parse_params(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
+    def __parse_params(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                        insurance_premium_rate: float, insurance_loading: float,
                        birth_date: dt.datetime, insurance_start_date: dt.datetime, insurance_period: Optional[int]):
         self.__parse_common_params(insurance_type, insurance_premium_frequency, gender,
@@ -45,13 +44,14 @@ class InsuranceCalculator:
         if self.insurance_type == "whole life insurance":
             end_age = 1212
             processed_insurance_period = end_age - start_age
-        age_lower_border = start_age // 12
-        age_higher_border = (start_age + processed_insurance_period) // 12 + 1
-        self.__init_life_table_metrics(age_lower_border, age_higher_border)
+        if self.insurance_type != "cumulative insurance":
+            age_lower_border = start_age // 12
+            age_higher_border = (start_age + processed_insurance_period) // 12 + 1
+            self.__init_life_table_metrics(age_lower_border, age_higher_border)
         return processed_insurance_period, start_age
 
     def __parse_tariffs_params(self, insurance_type: str, insurance_premium_frequency: str,
-                               gender: str, insurance_premium_rate: float, insurance_loading: float,
+                               gender: Optional[str], insurance_premium_rate: float, insurance_loading: float,
                                maximum_insurance_start_age: Optional[int], minimum_insurance_start_age: Optional[int],
                                maximum_insurance_period: Optional[int]):
         self.__parse_common_params(insurance_type, insurance_premium_frequency, gender,
@@ -66,7 +66,7 @@ class InsuranceCalculator:
             self.__init_life_table_metrics(lower_age_border, higher_age_border)
         return processed_maximum_insurance_period
 
-    def __init_life_table_metrics(self, lower_age_border, higher_age_border):
+    def __init_life_table_metrics(self, lower_age_border: int, higher_age_border: int):
         age_field = 'age'
         if self.gender == "male":
             lx_field, dx_field = 'men_survived_to_age', 'men_died_at_age'
@@ -78,7 +78,7 @@ class InsuranceCalculator:
             self.lx[r[age_field]] = r[lx_field]
             self.dx[r[age_field]] = r[dx_field]
 
-    def calculate_premium(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
+    def calculate_premium(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                           insurance_premium_rate: float, insurance_loading: float, birth_date: dt.datetime,
                           insurance_start_date: dt.datetime, insurance_period: Optional[int], insurance_sum: float):
         processed_insurance_period, start_age = self.__parse_params(insurance_type, insurance_premium_frequency, gender,
@@ -87,13 +87,13 @@ class InsuranceCalculator:
                                                                     insurance_start_date, insurance_period)
         return self.__calculate_premium(insurance_sum, processed_insurance_period, start_age)
 
-    def __calculate_premium(self, insurance_sum, insurance_period, start_age=None):
+    def __calculate_premium(self, insurance_sum: float, insurance_period: int, start_age: Optional[int] = None):
         sum_annuity = self.__calculate_insurance_sum_annuity(insurance_period, start_age)
         premium_annuity = self.__calculate_premium_annuity(insurance_period, start_age)
         result = (insurance_sum * sum_annuity) / (premium_annuity * (1 - self.f))
         return result
 
-    def calculate_insurance_sum(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
+    def calculate_insurance_sum(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                                 insurance_premium_rate: float, insurance_loading: float, birth_date: dt.datetime,
                                 insurance_start_date: dt.datetime, insurance_period: Optional[int],
                                 insurance_premium: float):
@@ -102,13 +102,13 @@ class InsuranceCalculator:
                                                                     birth_date, insurance_start_date, insurance_period)
         return self.__calculate_insurance_sum(insurance_premium, processed_insurance_period, start_age)
 
-    def __calculate_insurance_sum(self, insurance_premium, insurance_period, start_age=None):
+    def __calculate_insurance_sum(self, insurance_premium: float, insurance_period: int, start_age: Optional[int] = None):
         sum_annuity = self.__calculate_insurance_sum_annuity(insurance_period, start_age)
         premium_annuity = self.__calculate_premium_annuity(insurance_period, start_age)
         result = (insurance_premium * premium_annuity * (1 - self.f)) / sum_annuity
         return result
 
-    def calculate_reserve(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
+    def calculate_reserve(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                           insurance_premium_rate: float, insurance_loading: float, birth_date: dt.datetime,
                           insurance_start_date: dt.datetime, insurance_period: Optional[int],
                           insurance_sum: Optional[float], insurance_premium: Optional[float],
@@ -119,7 +119,7 @@ class InsuranceCalculator:
         return self.__calculate_reserve(insurance_sum, insurance_premium, processed_insurance_period,
                                         reserve_calculation_period, start_age)
 
-    def __calculate_reserve(self, insurance_sum, insurance_premium, insurance_period, reserve_period, start_age):
+    def __calculate_reserve(self, insurance_sum: Optional[float], insurance_premium: Optional[float], insurance_period: int, reserve_period: int, start_age: int):
         if self.insurance_type != "cumulative insurance":
             l_t = self.__fractional_lx(start_age + reserve_period)
         if insurance_premium is None:
@@ -143,7 +143,7 @@ class InsuranceCalculator:
             reserve = (insurance_sum * sum_annuity - insurance_premium * (1 - self.f) * premium_annuity) / l_t
         return reserve
 
-    def __calculate_premium_annuity(self, insurance_period, start_age=None, skip_period=0):
+    def __calculate_premium_annuity(self, insurance_period: float, start_age: Optional[int] = None, skip_period: int = 0):
         annuity_cost = 0
         if self.insurance_premium_frequency == "simultaneously" and skip_period == 0:
             if self.insurance_type != "cumulative insurance":
@@ -169,7 +169,7 @@ class InsuranceCalculator:
 
         return annuity_cost
 
-    def __calculate_insurance_sum_annuity(self, insurance_period, start_age=None, skip_period=0):
+    def __calculate_insurance_sum_annuity(self, insurance_period: int, start_age: Optional[int] = None, skip_period: int = 0):
         annuity_cost = 0
         if self.insurance_type == "cumulative insurance":
             annuity_cost = self.v ** ((insurance_period - skip_period) / 12)
@@ -194,13 +194,13 @@ class InsuranceCalculator:
 
         return annuity_cost
 
-    def __fractional_lx(self, age):
+    def __fractional_lx(self, age: int):
         return self.lx[age // 12] - self.dx[age // 12] * (age % 12) / 12
 
-    def __fractional_dx(self, age):
+    def __fractional_dx(self, age: int):
         return self.__fractional_lx(age) - self.__fractional_lx(age + 12)
 
-    def calculate_tariffs(self, insurance_type: str, insurance_premium_frequency: str, gender: str,
+    def calculate_tariffs(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                           insurance_premium_rate: float, insurance_loading: float,
                           minimum_insurance_start_age: Optional[int], maximum_insurance_start_age: Optional[int],
                           maximum_insurance_period: int):
@@ -229,10 +229,12 @@ class InsuranceCalculator:
                 for n in range(1, tariffs_table_column_count + 1):
                     if self.insurance_type == 'whole life insurance':
                         insurance_period = 1212 - 12 * x
-                        tariff = format_number(self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age))
+                        tariff = format_number(
+                            self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age))
                     elif self.insurance_type == 'whole life insurance' or x + n <= 101:
                         insurance_period = 12 * n
-                        tariff = format_number(self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age))
+                        tariff = format_number(
+                            self.__calculate_premium(tariffs_insurance_sum, insurance_period, start_age))
                     else:
                         tariff = '-'
                     tariffs_table[-1].append(tariff)
@@ -251,7 +253,7 @@ class InsuranceCalculator:
         file = self.__create_tariffs_table(tariffs_table, minimum_start_age)
         return file
 
-    def __create_tariffs_table(self, tariffs_table, start_age):
+    def __create_tariffs_table(self, tariffs_table: list[list[float]], start_age: int):
         row_number = len(tariffs_table)
         column_number = len(tariffs_table[0])
         tariffs_page = Workbook()

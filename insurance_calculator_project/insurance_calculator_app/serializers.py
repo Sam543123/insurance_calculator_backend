@@ -1,4 +1,3 @@
-from abc import ABC
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
@@ -27,10 +26,15 @@ GENDER_CHOICES = [
 
 class BaseCalculatorInputSerializer(serializers.Serializer):
     insurance_type = serializers.ChoiceField(choices=INSURANCE_TYPE_CHOICES)
+    """Type of insurance"""
     insurance_premium_frequency = serializers.ChoiceField(choices=PAYMENT_FREQUENCY_CHOICES)
-    gender = serializers.ChoiceField(choices=GENDER_CHOICES)
+    """Frequency of insurance premium payments"""
+    gender = serializers.ChoiceField(default=None, choices=GENDER_CHOICES)
+    """Frequency of the insured person"""
     insurance_premium_rate = serializers.FloatField(min_value=0)
+    """Expected return rate of insurance premium"""
     insurance_loading = serializers.FloatField()
+    """Insurance loading"""
 
     def validate(self, data):
         """
@@ -85,8 +89,11 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
 class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
     birth_date = serializers.DateField(default=None)
+    """Birth date of the insured person"""
     insurance_start_date = serializers.DateField(default=None)
+    """Start date of insurance"""
     insurance_period = serializers.IntegerField(default=None)
+    """Insurance period in months"""
 
     def validate(self, data):
         """
@@ -116,6 +123,7 @@ class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
 class PremiumCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
     insurance_sum = serializers.FloatField()
+    """Insurance sum"""
 
     def validate(self, data):
         """
@@ -132,6 +140,7 @@ class PremiumCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
 
 class SumCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
     insurance_premium = serializers.FloatField()
+    """Insurance premium"""
 
     def validate(self, data):
         """
@@ -148,8 +157,11 @@ class SumCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
 
 class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
     insurance_premium = serializers.FloatField(default=None)
+    """Insurance premium"""
     insurance_sum = serializers.FloatField(default=None)
+    """Insurance sum"""
     reserve_calculation_period = serializers.IntegerField()
+    """Period from start of insurance to moment of reserve calculation in months"""
 
     def validate(self, data):
         """
