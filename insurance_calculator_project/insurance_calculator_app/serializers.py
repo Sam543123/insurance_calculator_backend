@@ -45,6 +45,10 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'Insurance loading must be greater than or equal to 0 and less than 1.')
 
+        if data['insurance_type'] != 'cumulative insurance' and data['gender'] is None:
+            raise serializers.ValidationError(
+                '"gender" field is required for all insurance types except cumulative insurance')
+
         return data
 
     def to_internal_value(self, data):
@@ -67,6 +71,18 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
         """
 
         super().validate(data)
+
+        if data['insurance_type'] != 'cumulative insurance':
+            if data['minimum_insurance_start_age'] is None:
+                raise serializers.ValidationError(
+                    '"minimum_insurance_start_age" field is required for all insurance types except cumulative insurance')
+            if data['maximum_insurance_start_age'] is None:
+                raise serializers.ValidationError(
+                    '"maximum_insurance_start_age" field is required for all insurance types except cumulative insurance')
+
+        if data['insurance_type'] != 'whole life insurance' and data['maximum_insurance_period'] is None:
+            raise serializers.ValidationError(
+                '"maximum_insurance_period" field is required for all insurance types except whole life insurance')
 
         if (data['minimum_insurance_start_age'] is not None and data['maximum_insurance_start_age'] is not None) and \
                 data['minimum_insurance_start_age'] > data['maximum_insurance_start_age']:
@@ -101,6 +117,18 @@ class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
         """
 
         super().validate(data)
+
+        if data['insurance_type'] != 'cumulative insurance':
+            if data['birth_date'] is None:
+                raise serializers.ValidationError(
+                    '"birth_date" field is required for all insurance types except cumulative insurance')
+            if data['insurance_start_date'] is None:
+                raise serializers.ValidationError(
+                    '"insurance_start_date" field is required for all insurance types except cumulative insurance')
+
+        if data['insurance_type'] != 'whole life insurance' and data['insurance_period'] is None:
+            raise serializers.ValidationError(
+                '"insurance_period" field is required for all insurance types except whole life insurance')
 
         if data['birth_date'] and data['birth_date'] > datetime.today().date():
             raise serializers.ValidationError('Birth date can\'t be later than current moment.')
