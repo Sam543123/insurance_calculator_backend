@@ -30,7 +30,7 @@ class InsuranceCalculator:
         self.insurance_premium_frequency = insurance_premium_frequency
         self.gender = gender
         self.i = insurance_premium_rate
-        self.f = insurance_loading
+        self.f = insurance_loading or 0
         self.v = 1 / (1 + self.i)
 
     def __parse_params(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],

@@ -41,7 +41,7 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
         Check calculator input.
         """
 
-        if data['insurance_loading'] < 0 or data['insurance_loading'] >= 1:
+        if data['insurance_loading'] is not None and (data['insurance_loading'] < 0 or data['insurance_loading'] >= 1):
             raise serializers.ValidationError(
                 'Insurance loading must be greater than or equal to 0 and less than 1.')
 
@@ -190,6 +190,8 @@ class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
     """Insurance sum"""
     reserve_calculation_period = serializers.IntegerField()
     """Period from start of insurance to moment of reserve calculation in months"""
+    insurance_loading = serializers.FloatField(default=None)
+    """Insurance loading (it can be redundant for reserve calculation)"""
 
     def validate(self, data):
         """
@@ -197,6 +199,13 @@ class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
         """
 
         super().validate(data)
+
+        if data['insurance_premium'] is None and data['insurance_sum'] is None:
+            raise serializers.ValidationError('Either "insurance_premium" or "insurance_sum" must be provided.')
+
+        if data['insurance_sum'] is None and data['insurance_loading'] is None:
+            raise serializers.ValidationError(
+                '"insurance_loading" field is required for reserve calculation using insurance premium.')
 
         if data['insurance_premium'] is not None and data['insurance_premium'] <= 0:
             raise serializers.ValidationError('Insurance premium must be greater than 0.')
