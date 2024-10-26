@@ -14,6 +14,7 @@ from insurance_calculator_app.utils import format_number
 @api_view(['POST'])
 def calculate_insurance_premium(request):
     serializer = PremiumCalculatorInputSerializer(data=request.data)
+    # validate calculator input
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         result = calculator.calculate_premium(**serializer.validated_data)
@@ -24,6 +25,7 @@ def calculate_insurance_premium(request):
 @api_view(['POST'])
 def calculate_insurance_sum(request):
     serializer = SumCalculatorInputSerializer(data=request.data)
+    # validate calculator input
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         result = calculator.calculate_insurance_sum(**serializer.validated_data)
@@ -34,6 +36,7 @@ def calculate_insurance_sum(request):
 @api_view(['POST'])
 def calculate_reserve(request):
     serializer = ReserveCalculatorInputSerializer(data=request.data)
+    # validate calculator input
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         result = calculator.calculate_reserve(**serializer.validated_data)
@@ -44,9 +47,11 @@ def calculate_reserve(request):
 @api_view(['POST'])
 def calculate_tariffs(request):
     serializer = TariffCalculatorInputSerializer(data=request.data)
+    # validate calculator input
     if serializer.is_valid():
         calculator = InsuranceCalculator()
         tariffs_table_file = calculator.calculate_tariffs(**serializer.validated_data)
+        # return xlsx file with tariffs table
         response = HttpResponse(tariffs_table_file,
                                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8')
         return response
