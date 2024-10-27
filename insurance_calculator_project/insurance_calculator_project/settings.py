@@ -11,22 +11,29 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env_path = os.path.join(BASE_DIR, '.env')
+load_dotenv(env_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-qzsa=r0culayy(u^5iyr4+t_-=(a#a79%ipw#_n@^2b1)qt$4u'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-qzsa=r0culayy(u^5iyr4+t_-=(a#a79%ipw#_n@^2b1)qt$4u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = []
+allowed_hosts_string = os.environ.get('ALLOWED_HOSTS')
+ALLOWED_HOSTS = allowed_hosts_string.split(';') if allowed_hosts_string else []
 
+csrf_trusted_origins_string = os.environ.get('CSRF_TRUSTED_ORIGINS')
+CSRF_TRUSTED_ORIGINS = csrf_trusted_origins_string.split(';') if csrf_trusted_origins_string else []
 
 # Application definition
 
@@ -128,11 +135,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Allow requests to backend from this urls
-CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
-)
-
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
@@ -142,3 +144,5 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+# Allow requests to backend from these urls
+CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', 'http://localhost:3000').split(';')
