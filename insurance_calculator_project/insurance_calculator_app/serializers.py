@@ -29,7 +29,7 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
     """Type of insurance"""
     insurance_premium_frequency = serializers.ChoiceField(choices=PAYMENT_FREQUENCY_CHOICES)
     """Frequency of insurance premium payments"""
-    gender = serializers.ChoiceField(default=None, choices=GENDER_CHOICES)
+    gender = serializers.ChoiceField(default=None, choices=GENDER_CHOICES, allow_null=True)
     """Frequency of the insured person"""
     insurance_premium_rate = serializers.FloatField(min_value=0)
     """Expected return rate of insurance premium"""
@@ -58,11 +58,11 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
 
 
 class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
-    minimum_insurance_start_age = serializers.IntegerField(default=None, min_value=0)
+    minimum_insurance_start_age = serializers.IntegerField(default=None, min_value=0, allow_null=True)
     """Minimum insurance start age in years"""
-    maximum_insurance_start_age = serializers.IntegerField(default=None, min_value=0)
+    maximum_insurance_start_age = serializers.IntegerField(default=None, min_value=0, allow_null=True)
     """Maximum insurance start age in years"""
-    maximum_insurance_period = serializers.IntegerField(default=None)
+    maximum_insurance_period = serializers.IntegerField(default=None, allow_null=True)
     """Maximum insurance period in months"""
 
     def validate(self, data):
@@ -104,11 +104,11 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
 
 
 class IntermediateCalculatorInputSerializer(BaseCalculatorInputSerializer):
-    birth_date = serializers.DateField(default=None)
+    birth_date = serializers.DateField(default=None, allow_null=True)
     """Birth date of the insured person"""
-    insurance_start_date = serializers.DateField(default=None)
+    insurance_start_date = serializers.DateField(default=None, allow_null=True)
     """Start date of insurance"""
-    insurance_period = serializers.IntegerField(default=None)
+    insurance_period = serializers.IntegerField(default=None, allow_null=True)
     """Insurance period in months"""
 
     def validate(self, data):
@@ -184,13 +184,13 @@ class SumCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
 
 
 class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
-    insurance_premium = serializers.FloatField(default=None)
+    insurance_premium = serializers.FloatField(default=None, allow_null=True)
     """Insurance premium"""
-    insurance_sum = serializers.FloatField(default=None)
+    insurance_sum = serializers.FloatField(default=None, allow_null=True)
     """Insurance sum"""
     reserve_calculation_period = serializers.IntegerField()
     """Period from start of insurance to moment of reserve calculation in months"""
-    insurance_loading = serializers.FloatField(default=None)
+    insurance_loading = serializers.FloatField(default=None, allow_null=True)
     """Insurance loading (it can be redundant for reserve calculation)"""
 
     def validate(self, data):
@@ -212,9 +212,6 @@ class ReserveCalculatorInputSerializer(IntermediateCalculatorInputSerializer):
 
         if data['insurance_sum'] is not None and data['insurance_sum'] <= 0:
             raise serializers.ValidationError('Insurance sum must be greater than 0.')
-
-        if data['insurance_premium'] is None and data['insurance_sum'] is None:
-            raise serializers.ValidationError('Insurance premium or insurance sum must be specified.')
 
         if data['reserve_calculation_period'] == 0:
             raise serializers.ValidationError(

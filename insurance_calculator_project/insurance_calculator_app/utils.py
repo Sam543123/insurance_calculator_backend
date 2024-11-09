@@ -7,5 +7,5 @@ def to_snake_case(string):
     return result
 
 
-def format_number(n):
-    return round(n, 5)
+def format_number(n, precision=5):
+    return round(n, precision)

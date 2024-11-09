@@ -104,8 +104,8 @@ class InsuranceCalculator:
             self.dx[r[age_field]] = r[dx_field]
 
     def calculate_premium(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                          insurance_premium_rate: float, insurance_loading: float, birth_date: dt.datetime,
-                          insurance_start_date: dt.datetime, insurance_period: Optional[int], insurance_sum: float):
+                          insurance_premium_rate: float, insurance_loading: float, birth_date: Optional[dt.datetime],
+                          insurance_start_date: Optional[dt.datetime], insurance_period: Optional[int], insurance_sum: float):
         """
         Calculate insurance premium using raw parameters
         """
@@ -113,7 +113,8 @@ class InsuranceCalculator:
                                                                            insurance_premium_rate, insurance_loading,
                                                                            birth_date,
                                                                            insurance_start_date, insurance_period)
-        return self.__calculate_premium(insurance_sum, processed_insurance_period, start_age)
+        result = self.__calculate_premium(insurance_sum, processed_insurance_period, start_age)
+        return format_number(result)
 
     def __calculate_premium(self, insurance_sum: float, insurance_period: int, start_age: Optional[int] = None):
         """
@@ -125,8 +126,8 @@ class InsuranceCalculator:
         return result
 
     def calculate_insurance_sum(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                                insurance_premium_rate: float, insurance_loading: float, birth_date: dt.datetime,
-                                insurance_start_date: dt.datetime, insurance_period: Optional[int],
+                                insurance_premium_rate: float, insurance_loading: float, birth_date: Optional[dt.datetime],
+                                insurance_start_date: Optional[dt.datetime], insurance_period: Optional[int],
                                 insurance_premium: float):
         """
         Calculate insurance sum using raw parameters
@@ -134,7 +135,8 @@ class InsuranceCalculator:
         processed_insurance_period, start_age = self.__parse_common_params(insurance_type, insurance_premium_frequency, gender,
                                                                            insurance_premium_rate, insurance_loading,
                                                                            birth_date, insurance_start_date, insurance_period)
-        return self.__calculate_insurance_sum(insurance_premium, processed_insurance_period, start_age)
+        result = self.__calculate_insurance_sum(insurance_premium, processed_insurance_period, start_age)
+        return format_number(result)
 
     def __calculate_insurance_sum(self, insurance_premium: float, insurance_period: int, start_age: Optional[int] = None):
         """
@@ -146,8 +148,8 @@ class InsuranceCalculator:
         return result
 
     def calculate_reserve(self, insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                          insurance_premium_rate: float, insurance_loading: float, birth_date: dt.datetime,
-                          insurance_start_date: dt.datetime, insurance_period: Optional[int],
+                          insurance_premium_rate: float, insurance_loading: float, birth_date: Optional[dt.datetime],
+                          insurance_start_date: Optional[dt.datetime], insurance_period: Optional[int],
                           insurance_sum: Optional[float], insurance_premium: Optional[float],
                           reserve_calculation_period: int):
         """
@@ -156,8 +158,9 @@ class InsuranceCalculator:
         processed_insurance_period, start_age = self.__parse_common_params(insurance_type, insurance_premium_frequency, gender,
                                                                            insurance_premium_rate, insurance_loading,
                                                                            birth_date, insurance_start_date, insurance_period)
-        return self.__calculate_reserve(insurance_sum, insurance_premium, processed_insurance_period,
+        result = self.__calculate_reserve(insurance_sum, insurance_premium, processed_insurance_period,
                                         reserve_calculation_period, start_age)
+        return format_number(result)
 
     def __calculate_reserve(self, insurance_sum: Optional[float], insurance_premium: Optional[float], insurance_period: int, reserve_period: int, start_age: int):
         """

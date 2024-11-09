@@ -19,7 +19,7 @@ def calculate_insurance_premium(request):
         calculator = InsuranceCalculator()
         result = calculator.calculate_premium(**serializer.validated_data)
         return Response({'result': format_number(result)})
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -30,7 +30,7 @@ def calculate_insurance_sum(request):
         calculator = InsuranceCalculator()
         result = calculator.calculate_insurance_sum(**serializer.validated_data)
         return Response({'result': format_number(result)})
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -41,7 +41,7 @@ def calculate_reserve(request):
         calculator = InsuranceCalculator()
         result = calculator.calculate_reserve(**serializer.validated_data)
         return Response({'result': format_number(result)})
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -55,4 +55,4 @@ def calculate_tariffs(request):
         response = HttpResponse(tariffs_table_file,
                                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8')
         return response
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
