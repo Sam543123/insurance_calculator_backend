@@ -11,10 +11,6 @@ from insurance_calculator_app.tests.test_utils import compare_excel_files
 
 class CalculatorTest(TestCase):
 
-    @classmethod
-    def setUpTestData(cls):
-        cls.insurance_calculator = InsuranceCalculator()
-
     @staticmethod
     def get_default_base_common_params():
         params = {'insurance_type': 'term life insurance',
@@ -80,14 +76,14 @@ class CalculatorTest(TestCase):
     def check_result(self, params, expected_result, calculation_method_name='calculate_premium'):
         updated_params = self.update_params(params)
         with self.subTest(**updated_params):
-            calculation_method = getattr(self.insurance_calculator, calculation_method_name)
+            calculation_method = getattr(InsuranceCalculator, calculation_method_name)
             result = calculation_method(**updated_params)
             self.assertEqual(result, expected_result)
 
     def check_tariffs_result(self, params, expected_tariffs_file_path):
         updated_params = self.update_tariffs_params(params)
         with self.subTest(**updated_params):
-            result = self.insurance_calculator.calculate_tariffs(**updated_params)
+            result = InsuranceCalculator.calculate_tariffs(**updated_params)
             self.assertTrue(compare_excel_files(result, expected_tariffs_file_path))
 
     def test_insurance_premium_calculation(self):
