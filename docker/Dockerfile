@@ -2,7 +2,7 @@ FROM python:3.10-slim
 WORKDIR /app
 COPY requirements.txt .
 COPY insurance_calculator_project insurance_calculator_project/
-ENV PYTHONPATH "${PYTHONPATH}:/app/insurance_calculator_project"
+ENV PYTHONPATH="${PYTHONPATH}:/app/insurance_calculator_project"
 ENV PYTHONUNBUFFERED=1
 
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
