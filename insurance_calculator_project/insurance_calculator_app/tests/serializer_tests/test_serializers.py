@@ -5,7 +5,8 @@ from django.test import SimpleTestCase
 from insurance_calculator_app.serializers import (PremiumCalculatorInputSerializer, BaseCalculatorInputSerializer,
                                                   IntermediateCalculatorInputSerializer, SumCalculatorInputSerializer,
                                                   ReserveCalculatorInputSerializer, TariffCalculatorInputSerializer)
-from insurance_calculator_app.tests.test_utils import get_default_request_base_data, get_default_request_data, get_default_tariffs_request_data
+from insurance_calculator_app.utils import get_default_request_base_data, get_default_request_data, \
+    get_default_tariffs_request_data
 
 
 class CalculatorSerializerTest(SimpleTestCase):

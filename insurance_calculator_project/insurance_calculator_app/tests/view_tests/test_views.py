@@ -5,8 +5,8 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from insurance_calculator_app.tests.test_utils import get_default_request_data, \
-    compare_excel_files, get_default_tariffs_request_data
+from insurance_calculator_app.tests.test_utils import compare_excel_files
+from insurance_calculator_app.utils import get_default_request_data, get_default_tariffs_request_data
 
 
 class CalculatorAPITest(APITestCase):
