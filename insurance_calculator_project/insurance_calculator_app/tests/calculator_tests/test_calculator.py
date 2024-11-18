@@ -2,6 +2,7 @@ import datetime as dt
 import itertools
 from pathlib import Path
 
+import openpyxl
 from django.test import TestCase
 
 from insurance_calculator_app.insurance_calculator import InsuranceCalculator
@@ -23,7 +24,7 @@ class CalculatorTest(TestCase):
     def get_default_base_params():
         base_common_params = CalculatorTest.get_default_base_common_params()
         params = {**base_common_params, 'birth_date': dt.date(1995, 10, 21),
-                  'insurance_start_date':  dt.date(2024, 8, 24),
+                  'insurance_start_date': dt.date(2024, 8, 24),
                   'insurance_period': 69}
         return params
 
@@ -85,6 +86,15 @@ class CalculatorTest(TestCase):
         with self.subTest(**updated_params):
             result = InsuranceCalculator.calculate_tariffs(**updated_params)
             self.assertTrue(compare_excel_files(result, expected_tariffs_file_path))
+
+    def check_translation_tariffs_table(self, params, expected_results_dict):
+        updated_params = self.update_tariffs_params(params)
+        with self.subTest(**updated_params):
+            result = InsuranceCalculator.calculate_tariffs(**updated_params)
+            workbook = openpyxl.load_workbook(result, data_only=True)
+            work_sheet = workbook.active
+            for cell, expected_result in expected_results_dict.items():
+                self.assertEqual(work_sheet[cell].value, expected_result)
 
     def test_insurance_premium_calculation(self):
         insurance_sum = 10000
@@ -230,6 +240,51 @@ class CalculatorTest(TestCase):
 
         # test tariffs calculation for cumulative insurance with non-whole number of years in maximum insurance period
         expected_tariffs_folder_path = base_expected_tariffs_folder_path / 'fractional_period_cumulative_insurance_case'
-        params = {**self.get_default_base_tariffs_params(), 'insurance_type': 'cumulative insurance', 'maximum_insurance_period': 69}
+        params = {**self.get_default_base_tariffs_params(), 'insurance_type': 'cumulative insurance',
+                  'maximum_insurance_period': 69}
         expected_tariffs_file_path = expected_tariffs_folder_path / 'tariffs.xlsx'
         self.check_tariffs_result(params, expected_tariffs_file_path)
+
+        # test creating tariffs table for russian language
+        params = {**self.get_default_base_tariffs_params(), 'response_language_code': 'ru'}
+        # dictionary that matches cell of tariffs table with expected value
+        expected_results_dict = {
+            'A1': 'Таблица тарифов в % c доходностью страхового взноса 5.00% и нагрузкой 20.00%',
+            'A2': 'Тип страхования: страхование жизни на срок',
+            'A3': 'Периодичность уплаты: ежегодно',
+            'A4': 'Пол застрахованного: мужской',
+            'A5': 'Возраст застрахованного',
+            'B5': 'Период страхования (лет)'
+        }
+        self.check_translation_tariffs_table(params, expected_results_dict)
+
+        params = {**self.get_default_base_tariffs_params(), 'insurance_type': 'cumulative insurance',
+                  'insurance_premium_frequency': 'simultaneously', 'response_language_code': 'ru'}
+        expected_results_dict = {
+            'A2': 'Тип страхования: чисто накопительное страхование',
+            'A3': 'Периодичность уплаты: единовременно',
+            'A4': 'Период страхования (лет, месяцев)',
+            'A5': 'Год',
+            'B5': 'Месяц'
+        }
+        self.check_translation_tariffs_table(params, expected_results_dict)
+
+        params = {**self.get_default_base_tariffs_params(),
+                  'insurance_type': 'whole life insurance',
+                  'insurance_premium_frequency': 'monthly',
+                  'gender': 'female', 'response_language_code': 'ru'}
+        expected_results_dict = {
+            'A2': 'Тип страхования: пожизненное страхование',
+            'A3': 'Периодичность уплаты: ежемесячно',
+            'A4': 'Пол застрахованного: женский',
+            'B5': 'Тариф'
+        }
+        self.check_translation_tariffs_table(params, expected_results_dict)
+
+        params = {
+            **self.get_default_base_tariffs_params(),
+            'insurance_type': 'pure endowment',
+            'response_language_code': 'ru'
+        }
+        expected_results_dict = {'A2': 'Тип страхования: чистое дожитие'}
+        self.check_translation_tariffs_table(params, expected_results_dict)
