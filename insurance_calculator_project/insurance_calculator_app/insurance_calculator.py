@@ -1,7 +1,10 @@
 from io import BytesIO
 from math import ceil, log
+from pathlib import Path
 from typing import Optional
 
+from babel import Locale
+from babel.support import Translations
 from dateutil.relativedelta import relativedelta
 from openpyxl.styles import Alignment, NamedStyle, Font, Side, Border
 import datetime as dt
@@ -37,8 +40,8 @@ class InsuranceCalculator:
             # to get necessary records from life table
             lower_age_border = start_age // 12
             higher_age_border = (start_age + processed_insurance_period) // 12 + 1
-            life_table_values = InsuranceCalculator.__get_life_table_records(gender, lower_age_border,
-                                                                             higher_age_border)
+            life_table_values = InsuranceCalculator.__get_life_table_values(gender, lower_age_border,
+                                                                            higher_age_border)
             parsed_params.update(life_table_values)
         parsed_params.update({'insurance_period': processed_insurance_period, 'start_age': start_age})
         return parsed_params
@@ -62,14 +65,14 @@ class InsuranceCalculator:
             # to get necessary records from life table
             lower_age_border = maximum_insurance_start_age
             higher_age_border = minimum_insurance_start_age + processed_maximum_insurance_period // 12
-            life_table_values = InsuranceCalculator.__get_life_table_records(gender, lower_age_border,
-                                                                             higher_age_border)
+            life_table_values = InsuranceCalculator.__get_life_table_values(gender, lower_age_border,
+                                                                            higher_age_border)
             parsed_params.update(life_table_values)
         parsed_params['maximum_insurance_period'] = processed_maximum_insurance_period
         return parsed_params
 
     @staticmethod
-    def __get_life_table_records(gender: str, lower_age_border: int, higher_age_border: int):
+    def __get_life_table_values(gender: str, lower_age_border: int, higher_age_border: int):
         """
         Get necessary values from life table
         """
@@ -338,7 +341,7 @@ class InsuranceCalculator:
     def calculate_tariffs(insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
                           insurance_premium_rate: float, insurance_loading: float,
                           minimum_insurance_start_age: Optional[int], maximum_insurance_start_age: Optional[int],
-                          maximum_insurance_period: int):
+                          maximum_insurance_period: int, response_language_code: str = 'en'):
         """
         Create tariffs table using raw parameters
         """
@@ -352,7 +355,8 @@ class InsuranceCalculator:
             'insurance_type': insurance_type, 'insurance_premium_frequency': insurance_premium_frequency,
             'gender': gender, 'insurance_premium_rate': insurance_premium_rate,
             'insurance_loading': insurance_loading, 'minimum_start_age': minimum_insurance_start_age,
-            'maximum_start_age': maximum_insurance_start_age, **parsed_params
+            'maximum_start_age': maximum_insurance_start_age,
+            'response_language_code': response_language_code, **parsed_params
         }
 
         return InsuranceCalculator.__calculate_tariffs(**params)
@@ -362,7 +366,7 @@ class InsuranceCalculator:
                             insurance_premium_rate: float, insurance_loading: float,
                             minimum_start_age: Optional[int], maximum_start_age: Optional[int],
                             maximum_insurance_period: Optional[int], lx: Optional[dict[int, float]],
-                            dx: Optional[dict[int, float]]):
+                            dx: Optional[dict[int, float]], response_language_code: str):
         """
         Create tariffs table using parsed parameters
         """
@@ -423,22 +427,27 @@ class InsuranceCalculator:
         # return tariffs table file
         file = InsuranceCalculator.__create_tariffs_table(insurance_type, insurance_premium_frequency,
                                                           gender, insurance_premium_rate, insurance_loading,
-                                                          tariffs_table, minimum_start_age)
+                                                          tariffs_table, minimum_start_age, response_language_code)
         return file
 
     @staticmethod
     def __create_tariffs_table(insurance_type: str, insurance_premium_frequency: str,
                                gender: Optional[str],  insurance_premium_rate: float,
                                insurance_loading: float, tariffs_table: list[list[float]],
-                               start_age: Optional[int]):
+                               start_age: Optional[int], response_language_code: str):
         """
         Create xlsx file with tariffs table
         """
+        # get translation function for received language
+        locale = Locale(response_language_code)
+        translation_path = Path(__file__).parents[0] / 'locales'
+        translations = Translations.load(translation_path, [locale])
+        _ = translations.gettext
         row_number = len(tariffs_table)
         column_number = len(tariffs_table[0])
         tariffs_page = Workbook()
         work_sheet = tariffs_page.active
-        work_sheet.title = 'Tariffs'
+        work_sheet.title = _('Tariffs')
 
         border_side = Side(style='thin', color='000000')
         border = Border(left=border_side, top=border_side, right=border_side, bottom=border_side)
@@ -466,10 +475,15 @@ class InsuranceCalculator:
         work_sheet['B5'].style = 'tableHeader'
 
         work_sheet['A1'].font = Font(name='Times New Roman', size=14, bold=True)
-        work_sheet['A1'] = (f'Tariffs table in % with insurance premium rate {(100 * insurance_premium_rate):.2f}% '
-                            f'and loading {(100 * insurance_loading):.2f}%')
-        work_sheet['A2'] = f'Insurance type: {insurance_type}'
-        work_sheet['A3'] = f'Payment frequency: {insurance_premium_frequency}'
+        work_sheet['A1'] = _(
+            'Tariffs table in %% with insurance premium rate %(insurance_premium_rate_percents).2f%% and loading %(insurance_loading_percents).2f%%') % {
+            'insurance_premium_rate_percents': 100 * insurance_premium_rate,
+            'insurance_loading_percents': 100 * insurance_loading
+        }
+        work_sheet['A2'] = _('Insurance type: %(insurance_type)s') % {'insurance_type': _(insurance_type)}
+        work_sheet['A3'] = _('Payment frequency: %(insurance_premium_frequency)s') % {
+            'insurance_premium_frequency': _(insurance_premium_frequency)
+        }
 
         work_sheet.row_dimensions[1].height = 50
         work_sheet.row_dimensions[2].height = 40
@@ -480,14 +494,14 @@ class InsuranceCalculator:
         skipped_rows = 6
         if insurance_type != 'cumulative insurance':
             work_sheet.column_dimensions['A'].width = 20
-            work_sheet['A4'] = f'Gender of insured person: {gender}'
-            work_sheet['A5'] = 'Age of insured person'
+            work_sheet['A4'] = _('Gender of insured person: %(gender)s') % {'gender': _(gender)}
+            work_sheet['A5'] = _('Age of insured person')
             if insurance_type != 'whole life insurance':
                 work_sheet.row_dimensions[5].height = 30
                 work_sheet.row_dimensions[6].height = 20
                 work_sheet.merge_cells(start_row=5, start_column=1, end_row=6, end_column=1)
                 work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=column_number + 1)
-                work_sheet['B5'] = 'Insurance period (years)'
+                work_sheet['B5'] = _('Insurance period (years)')
                 for j in range(1, column_number + 1):
                     cell = work_sheet.cell(row=6, column=j + 1)
                     cell.style = 'tableText'
@@ -495,7 +509,7 @@ class InsuranceCalculator:
             else:
                 work_sheet.row_dimensions[5].height = 50
                 work_sheet.column_dimensions['B'].width = 20
-                work_sheet['B5'] = 'Tariff'
+                work_sheet['B5'] = _('Tariff')
                 skipped_rows = 5
 
             start_first_column_value = start_age
@@ -504,9 +518,9 @@ class InsuranceCalculator:
             work_sheet.row_dimensions[5].height = 30
             work_sheet.merge_cells(start_row=5, start_column=1, end_row=6, end_column=1)
             work_sheet.merge_cells(start_row=5, start_column=2, end_row=5, end_column=column_number + 1)
-            work_sheet['A4'] = 'Insurance period (years, months)'
-            work_sheet['A5'] = 'Year'
-            work_sheet['B5'] = 'Month'
+            work_sheet['A4'] = _('Insurance period (years, months)')
+            work_sheet['A5'] = _('Year')
+            work_sheet['B5'] = _('Month')
 
             for j in range(2, column_number + 2):
                 cell = work_sheet.cell(row=6, column=j)

@@ -23,6 +23,11 @@ GENDER_CHOICES = [
     'female'
 ]
 
+LANGUAGE_CODE_CHOICES = [
+    'en',
+    'ru'
+]
+
 
 class BaseCalculatorInputSerializer(serializers.Serializer):
     insurance_type = serializers.ChoiceField(choices=INSURANCE_TYPE_CHOICES)
@@ -64,6 +69,8 @@ class TariffCalculatorInputSerializer(BaseCalculatorInputSerializer):
     """Maximum insurance start age in years"""
     maximum_insurance_period = serializers.IntegerField(default=None, allow_null=True)
     """Maximum insurance period in months"""
+    response_language_code = serializers.ChoiceField(default='en', choices=LANGUAGE_CODE_CHOICES)
+    """Code of returned tariffs table language"""
 
     def validate(self, data):
         """

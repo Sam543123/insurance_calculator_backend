@@ -1,0 +1,59 @@
+msgid "Tariffs"
+msgstr "Тарифы"
+
+msgid "Tariff"
+msgstr "Тариф"
+
+msgid "Tariffs table in %% with insurance premium rate %(insurance_premium_rate_percents).2f%% and loading %(insurance_loading_percents).2f%%"
+msgstr "Таблица тарифов в %% c доходностью страхового взноса %(insurance_premium_rate_percents).2f%% и нагрузкой %(insurance_loading_percents).2f%%"
+
+msgid "Insurance type: %(insurance_type)s"
+msgstr "Тип страхования: %(insurance_type)s"
+
+msgid "Payment frequency: %(insurance_premium_frequency)s"
+msgstr "Периодичность уплаты: %(insurance_premium_frequency)s"
+
+msgid "Age of insured person"
+msgstr "Возраст застрахованного"
+
+msgid "Gender of insured person: %(gender)s"
+msgstr "Пол застрахованного: %(gender)s"
+
+msgid "Insurance period (years)"
+msgstr "Период страхования (лет)"
+
+msgid "Insurance period (years, months)"
+msgstr "Период страхования (лет, месяцев)"
+
+msgid "Year"
+msgstr "Год"
+
+msgid "Month"
+msgstr "Месяц"
+
+msgid "pure endowment"
+msgstr "чистое дожитие"
+
+msgid "term life insurance"
+msgstr "страхование жизни на срок"
+
+msgid "whole life insurance"
+msgstr "пожизненное страхование"
+
+msgid "cumulative insurance"
+msgstr "чисто накопительное страхование"
+
+msgid "simultaneously"
+msgstr "единовременно"
+
+msgid "annually"
+msgstr "ежегодно"
+
+msgid "monthly"
+msgstr "ежемесячно"
+
+msgid "male"
+msgstr "мужской"
+
+msgid "female"
+msgstr "женский"
