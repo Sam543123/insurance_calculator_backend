@@ -36,8 +36,8 @@ class BaseCalculatorInputSerializer(serializers.Serializer):
     """Frequency of insurance premium payments"""
     gender = serializers.ChoiceField(default=None, choices=GENDER_CHOICES, allow_null=True)
     """Frequency of the insured person"""
-    insurance_premium_rate = serializers.FloatField(min_value=0)
-    """Expected return rate of insurance premium"""
+    technical_interest_rate = serializers.FloatField(min_value=0)
+    """Expected annual return rate of insurance premium"""
     insurance_loading = serializers.FloatField()
     """Insurance loading"""
 

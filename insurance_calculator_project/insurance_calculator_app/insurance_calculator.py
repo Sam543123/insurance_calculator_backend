@@ -96,7 +96,7 @@ class InsuranceCalculator:
 
     @staticmethod
     def calculate_premium(insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                          insurance_premium_rate: float, insurance_loading: float, birth_date: Optional[dt.datetime],
+                          technical_interest_rate: float, insurance_loading: float, birth_date: Optional[dt.datetime],
                           insurance_start_date: Optional[dt.datetime], insurance_period: Optional[int],
                           insurance_sum: float):
         """
@@ -108,7 +108,7 @@ class InsuranceCalculator:
                                                                   insurance_period)
         params = {
             'insurance_type': insurance_type, 'insurance_premium_frequency': insurance_premium_frequency,
-            'insurance_premium_rate': insurance_premium_rate, 'insurance_loading': insurance_loading,
+            'technical_interest_rate': technical_interest_rate, 'insurance_loading': insurance_loading,
             'insurance_sum': insurance_sum, **parsed_params
         }
 
@@ -117,23 +117,23 @@ class InsuranceCalculator:
 
     @staticmethod
     def __calculate_premium(insurance_type: str, insurance_premium_frequency: str,
-                            insurance_premium_rate: float, insurance_loading: float, insurance_period: int,
+                            technical_interest_rate: float, insurance_loading: float, insurance_period: int,
                             insurance_sum: float, lx: Optional[dict[int, float]], dx: Optional[dict[int, float]],
                             start_age: Optional[int] = None):
         """
         Calculate insurance premium using parsed parameters
         """
-        sum_annuity = InsuranceCalculator.__calculate_insurance_sum_annuity(insurance_type, insurance_premium_rate,
+        sum_annuity = InsuranceCalculator.__calculate_insurance_sum_annuity(insurance_type, technical_interest_rate,
                                                                             insurance_period, lx, dx, start_age)
         premium_annuity = InsuranceCalculator.__calculate_premium_annuity(insurance_type, insurance_premium_frequency,
-                                                                          insurance_premium_rate, insurance_period, lx,
+                                                                          technical_interest_rate, insurance_period, lx,
                                                                           dx, start_age)
         result = (insurance_sum * sum_annuity) / (premium_annuity * (1 - insurance_loading))
         return result
 
     @staticmethod
     def calculate_insurance_sum(insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                                insurance_premium_rate: float, insurance_loading: float,
+                                technical_interest_rate: float, insurance_loading: float,
                                 birth_date: Optional[dt.datetime],
                                 insurance_start_date: Optional[dt.datetime], insurance_period: Optional[int],
                                 insurance_premium: float):
@@ -146,7 +146,7 @@ class InsuranceCalculator:
                                                                   insurance_period)
         params = {
             'insurance_type': insurance_type, 'insurance_premium_frequency': insurance_premium_frequency,
-            'insurance_premium_rate': insurance_premium_rate, 'insurance_loading': insurance_loading,
+            'technical_interest_rate': technical_interest_rate, 'insurance_loading': insurance_loading,
             'insurance_premium': insurance_premium, **parsed_params
         }
 
@@ -155,24 +155,24 @@ class InsuranceCalculator:
 
     @staticmethod
     def __calculate_insurance_sum(insurance_type: str, insurance_premium_frequency: str,
-                                  insurance_premium_rate: float, insurance_loading: float, insurance_period: int,
+                                  technical_interest_rate: float, insurance_loading: float, insurance_period: int,
                                   insurance_premium: float, lx: Optional[dict[int, float]],
                                   dx: Optional[dict[int, float]],
                                   start_age: Optional[int] = None):
         """
         Calculate insurance sum using parsed parameters
         """
-        sum_annuity = InsuranceCalculator.__calculate_insurance_sum_annuity(insurance_type, insurance_premium_rate,
+        sum_annuity = InsuranceCalculator.__calculate_insurance_sum_annuity(insurance_type, technical_interest_rate,
                                                                             insurance_period, lx, dx, start_age)
         premium_annuity = InsuranceCalculator.__calculate_premium_annuity(insurance_type, insurance_premium_frequency,
-                                                                          insurance_premium_rate, insurance_period, lx,
+                                                                          technical_interest_rate, insurance_period, lx,
                                                                           dx, start_age)
         result = (insurance_premium * premium_annuity * (1 - insurance_loading)) / sum_annuity
         return result
 
     @staticmethod
     def calculate_reserve(insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                          insurance_premium_rate: float, insurance_loading: Optional[float],
+                          technical_interest_rate: float, insurance_loading: Optional[float],
                           birth_date: Optional[dt.datetime],  insurance_start_date: Optional[dt.datetime],
                           insurance_period: Optional[int], insurance_sum: Optional[float],
                           insurance_premium: Optional[float], reserve_calculation_period: int):
@@ -185,7 +185,7 @@ class InsuranceCalculator:
                                                                   insurance_period)
         params = {
             'insurance_type': insurance_type, 'insurance_premium_frequency': insurance_premium_frequency,
-            'insurance_premium_rate': insurance_premium_rate, 'insurance_loading': insurance_loading,
+            'technical_interest_rate': technical_interest_rate, 'insurance_loading': insurance_loading,
             'insurance_premium': insurance_premium, 'insurance_sum': insurance_sum,
             'reserve_calculation_period': reserve_calculation_period, **parsed_params
         }
@@ -194,7 +194,7 @@ class InsuranceCalculator:
 
     @staticmethod
     def __calculate_reserve(insurance_type: str, insurance_premium_frequency: str,
-                            insurance_premium_rate: float, insurance_loading: Optional[float],
+                            technical_interest_rate: float, insurance_loading: Optional[float],
                             insurance_sum: Optional[float], insurance_premium: Optional[float],
                             insurance_period: int, reserve_calculation_period: int, lx: Optional[dict[int, float]],
                             dx: Optional[dict[int, float]], start_age: int):
@@ -202,7 +202,7 @@ class InsuranceCalculator:
         Calculate reserve using parsed parameters
         """
         processed_insurance_loading = insurance_loading
-        v = 1 / (1 + insurance_premium_rate)
+        v = 1 / (1 + technical_interest_rate)
         if insurance_type != "cumulative insurance":
             # number of people survived to time of reserve calculation
             l_t = InsuranceCalculator.__fractional_lx(start_age + reserve_calculation_period, lx, dx)
@@ -213,14 +213,14 @@ class InsuranceCalculator:
             # we can assign to it an arbitrary value, 0 for example
             processed_insurance_loading = 0 if insurance_loading is None else insurance_loading
             insurance_premium = InsuranceCalculator.__calculate_premium(insurance_type, insurance_premium_frequency,
-                                                                        insurance_premium_rate,
+                                                                        technical_interest_rate,
                                                                         processed_insurance_loading,
                                                                         insurance_period, insurance_sum, lx, dx,
                                                                         start_age)
         else:
             insurance_sum = InsuranceCalculator.__calculate_insurance_sum(insurance_type,
                                                                           insurance_premium_frequency,
-                                                                          insurance_premium_rate,
+                                                                          technical_interest_rate,
                                                                           processed_insurance_loading,
                                                                           insurance_period, insurance_premium,
                                                                           lx, dx, start_age)
@@ -230,7 +230,7 @@ class InsuranceCalculator:
         if insurance_type in {"pure endowment", "cumulative insurance"}:
             premium_annuity = InsuranceCalculator.__calculate_premium_annuity(insurance_type,
                                                                               insurance_premium_frequency,
-                                                                              insurance_premium_rate,
+                                                                              technical_interest_rate,
                                                                               reserve_calculation_period, lx,
                                                                               dx, start_age)
             if insurance_type == "pure endowment":
@@ -244,11 +244,11 @@ class InsuranceCalculator:
         else:
             premium_annuity = InsuranceCalculator.__calculate_premium_annuity(insurance_type,
                                                                               insurance_premium_frequency,
-                                                                              insurance_premium_rate,
+                                                                              technical_interest_rate,
                                                                               insurance_period, lx,
                                                                               dx, start_age,
                                                                               skip_period=reserve_calculation_period)
-            sum_annuity = InsuranceCalculator.__calculate_insurance_sum_annuity(insurance_type, insurance_premium_rate,
+            sum_annuity = InsuranceCalculator.__calculate_insurance_sum_annuity(insurance_type, technical_interest_rate,
                                                                                 insurance_period, lx, dx, start_age,
                                                                                 skip_period=reserve_calculation_period)
             reserve = (insurance_sum * sum_annuity - insurance_premium * (
@@ -257,14 +257,14 @@ class InsuranceCalculator:
 
     @staticmethod
     def __calculate_premium_annuity(insurance_type: str, insurance_premium_frequency: str,
-                                    insurance_premium_rate: float, insurance_period: int,
+                                    technical_interest_rate: float, insurance_period: int,
                                     lx: Optional[dict[int, float]], dx: Optional[dict[int, float]],
                                     start_age: Optional[int] = None, skip_period: int = 0):
         """
         Calculate insurance premium annuity cost assuming that cost of one payment is equal to 1
         """
         annuity_cost = 0
-        v = 1 / (1 + insurance_premium_rate)
+        v = 1 / (1 + technical_interest_rate)
         if insurance_premium_frequency == "simultaneously" and skip_period == 0:
             if insurance_type != "cumulative insurance":
                 annuity_cost = InsuranceCalculator.__fractional_lx(start_age, lx, dx)
@@ -291,16 +291,16 @@ class InsuranceCalculator:
         return annuity_cost
 
     @staticmethod
-    def __calculate_insurance_sum_annuity(insurance_type: str, insurance_premium_rate: float, insurance_period: int,
+    def __calculate_insurance_sum_annuity(insurance_type: str, technical_interest_rate: float, insurance_period: int,
                                           lx: Optional[dict[int, float]], dx: Optional[dict[int, float]],
                                           start_age: Optional[int] = None, skip_period: int = 0):
         """
         Calculate insurance sum annuity cost assuming that cost of one payment is equal to 1
         """
         annuity_cost = 0
-        v = 1 / (1 + insurance_premium_rate)
+        v = 1 / (1 + technical_interest_rate)
         # use alias for frequently used parameters
-        i = insurance_premium_rate
+        i = technical_interest_rate
         if insurance_type == "cumulative insurance":
             annuity_cost = v ** ((insurance_period - skip_period) / 12)
         elif insurance_type == "pure endowment":
@@ -339,7 +339,7 @@ class InsuranceCalculator:
 
     @staticmethod
     def calculate_tariffs(insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                          insurance_premium_rate: float, insurance_loading: float,
+                          technical_interest_rate: float, insurance_loading: float,
                           minimum_insurance_start_age: Optional[int], maximum_insurance_start_age: Optional[int],
                           maximum_insurance_period: int, response_language_code: str = 'en'):
         """
@@ -353,7 +353,7 @@ class InsuranceCalculator:
 
         params = {
             'insurance_type': insurance_type, 'insurance_premium_frequency': insurance_premium_frequency,
-            'gender': gender, 'insurance_premium_rate': insurance_premium_rate,
+            'gender': gender, 'technical_interest_rate': technical_interest_rate,
             'insurance_loading': insurance_loading, 'minimum_start_age': minimum_insurance_start_age,
             'maximum_start_age': maximum_insurance_start_age,
             'response_language_code': response_language_code, **parsed_params
@@ -363,7 +363,7 @@ class InsuranceCalculator:
 
     @staticmethod
     def __calculate_tariffs(insurance_type: str, insurance_premium_frequency: str, gender: Optional[str],
-                            insurance_premium_rate: float, insurance_loading: float,
+                            technical_interest_rate: float, insurance_loading: float,
                             minimum_start_age: Optional[int], maximum_start_age: Optional[int],
                             maximum_insurance_period: Optional[int], lx: Optional[dict[int, float]],
                             dx: Optional[dict[int, float]], response_language_code: str):
@@ -387,7 +387,7 @@ class InsuranceCalculator:
                         # Calculate tariff as insurance premium based on insurance sum equal to 1
                         tariff = format_number(InsuranceCalculator.__calculate_premium(insurance_type,
                                                                                        insurance_premium_frequency,
-                                                                                       insurance_premium_rate,
+                                                                                       technical_interest_rate,
                                                                                        insurance_loading,
                                                                                        insurance_period,
                                                                                        tariffs_insurance_sum,
@@ -397,7 +397,7 @@ class InsuranceCalculator:
                         insurance_period = 12 * n
                         tariff = format_number(InsuranceCalculator.__calculate_premium(insurance_type,
                                                                                        insurance_premium_frequency,
-                                                                                       insurance_premium_rate,
+                                                                                       technical_interest_rate,
                                                                                        insurance_loading,
                                                                                        insurance_period,
                                                                                        tariffs_insurance_sum,
@@ -415,7 +415,7 @@ class InsuranceCalculator:
                     if m + n != 0 and 12 * n + m <= maximum_insurance_period:
                         tariff = format_number(InsuranceCalculator.__calculate_premium(insurance_type,
                                                                                        insurance_premium_frequency,
-                                                                                       insurance_premium_rate,
+                                                                                       technical_interest_rate,
                                                                                        insurance_loading,
                                                                                        insurance_period,
                                                                                        tariffs_insurance_sum, lx,
@@ -426,13 +426,13 @@ class InsuranceCalculator:
 
         # return tariffs table file
         file = InsuranceCalculator.__create_tariffs_table(insurance_type, insurance_premium_frequency,
-                                                          gender, insurance_premium_rate, insurance_loading,
+                                                          gender, technical_interest_rate, insurance_loading,
                                                           tariffs_table, minimum_start_age, response_language_code)
         return file
 
     @staticmethod
     def __create_tariffs_table(insurance_type: str, insurance_premium_frequency: str,
-                               gender: Optional[str],  insurance_premium_rate: float,
+                               gender: Optional[str],  technical_interest_rate: float,
                                insurance_loading: float, tariffs_table: list[list[float]],
                                start_age: Optional[int], response_language_code: str):
         """
@@ -476,12 +476,12 @@ class InsuranceCalculator:
 
         work_sheet['A1'].font = Font(name='Times New Roman', size=14, bold=True)
         work_sheet['A1'] = _(
-            'Tariffs table in %% with insurance premium rate %(insurance_premium_rate_percents).2f%% and loading %(insurance_loading_percents).2f%%') % {
-            'insurance_premium_rate_percents': 100 * insurance_premium_rate,
+            'Tariffs table in %% with technical interest rate %(technical_interest_rate_percents).2f%% and loading %(insurance_loading_percents).2f%%') % {
+            'technical_interest_rate_percents': 100 * technical_interest_rate,
             'insurance_loading_percents': 100 * insurance_loading
         }
         work_sheet['A2'] = _('Insurance type: %(insurance_type)s') % {'insurance_type': _(insurance_type)}
-        work_sheet['A3'] = _('Payment frequency: %(insurance_premium_frequency)s') % {
+        work_sheet['A3'] = _('Insurance premium payment frequency: %(insurance_premium_frequency)s') % {
             'insurance_premium_frequency': _(insurance_premium_frequency)
         }
 

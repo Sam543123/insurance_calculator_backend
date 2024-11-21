@@ -4,14 +4,14 @@ msgstr "Тарифы"
 msgid "Tariff"
 msgstr "Тариф"
 
-msgid "Tariffs table in %% with insurance premium rate %(insurance_premium_rate_percents).2f%% and loading %(insurance_loading_percents).2f%%"
-msgstr "Таблица тарифов в %% c доходностью страхового взноса %(insurance_premium_rate_percents).2f%% и нагрузкой %(insurance_loading_percents).2f%%"
+msgid "Tariffs table in %% with technical interest rate %(technical_interest_rate_percents).2f%% and loading %(insurance_loading_percents).2f%%"
+msgstr "Таблица тарифов в %% с технической процентной ставкой %(technical_interest_rate_percents).2f%% и нагрузкой %(insurance_loading_percents).2f%%"
 
 msgid "Insurance type: %(insurance_type)s"
 msgstr "Тип страхования: %(insurance_type)s"
 
-msgid "Payment frequency: %(insurance_premium_frequency)s"
-msgstr "Периодичность уплаты: %(insurance_premium_frequency)s"
+msgid "Insurance premium payment frequency: %(insurance_premium_frequency)s"
+msgstr "Периодичность уплаты страхового взноса: %(insurance_premium_frequency)s"
 
 msgid "Age of insured person"
 msgstr "Возраст застрахованного"

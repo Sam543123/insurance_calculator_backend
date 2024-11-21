@@ -16,7 +16,7 @@ class CalculatorTest(TestCase):
     def get_default_base_common_params():
         params = {'insurance_type': 'term life insurance',
                   'insurance_premium_frequency': 'annually',
-                  'insurance_premium_rate': 0.05,
+                  'technical_interest_rate': 0.05,
                   'insurance_loading': 0.2, 'gender': 'male'}
         return params
 
@@ -115,7 +115,7 @@ class CalculatorTest(TestCase):
         # test premium calculation for zero insurance premium rate with different insurance types
         expected_results = (2069.59742, 22.84189, 299.1907, 2083.33333)
         expected_results_iterator = iter(expected_results)
-        params = {**base_params, 'insurance_premium_rate': 0}
+        params = {**base_params, 'technical_interest_rate': 0}
         for insurance_type in INSURANCE_TYPE_CHOICES:
             params['insurance_type'] = insurance_type
             self.check_result(params, next(expected_results_iterator))
@@ -149,7 +149,7 @@ class CalculatorTest(TestCase):
         # test insurance sum calculation for zero insurance premium rate with different insurance types
         expected_results = (483.18576, 43779.20484, 3342.34984, 480)
         expected_results_iterator = iter(expected_results)
-        params = {**base_params, 'insurance_premium_rate': 0}
+        params = {**base_params, 'technical_interest_rate': 0}
         for insurance_type in INSURANCE_TYPE_CHOICES:
             params['insurance_type'] = insurance_type
             params['insurance_premium'] = self.get_insurance_premium(params['insurance_premium_frequency'])
@@ -186,7 +186,7 @@ class CalculatorTest(TestCase):
         # test reserve calculation for zero insurance premium rate with different insurance types
         expected_results = (6641.87767, 19.44067, 904.86721, 6666.66667)
         expected_results_iterator = iter(expected_results)
-        params = {**base_params, 'insurance_sum': insurance_sum, 'insurance_premium_rate': 0}
+        params = {**base_params, 'insurance_sum': insurance_sum, 'technical_interest_rate': 0}
         for insurance_type in INSURANCE_TYPE_CHOICES:
             params['insurance_type'] = insurance_type
             self.check_result(params, next(expected_results_iterator), 'calculate_reserve')
@@ -220,7 +220,7 @@ class CalculatorTest(TestCase):
 
         # test tariffs calculation for zero insurance premium rate with different insurance types
         expected_tariffs_folder_path = base_expected_tariffs_folder_path / 'zero_premium_rate_case'
-        params = {**self.get_default_base_tariffs_params(), 'insurance_premium_rate': 0}
+        params = {**self.get_default_base_tariffs_params(), 'technical_interest_rate': 0}
         for insurance_type in INSURANCE_TYPE_CHOICES:
             params['insurance_type'] = insurance_type
             expected_tariffs_file_path = expected_tariffs_folder_path / f'{insurance_type.replace(" ", "_")}_tariffs.xlsx'
@@ -249,9 +249,9 @@ class CalculatorTest(TestCase):
         params = {**self.get_default_base_tariffs_params(), 'response_language_code': 'ru'}
         # dictionary that matches cell of tariffs table with expected value
         expected_results_dict = {
-            'A1': 'Таблица тарифов в % c доходностью страхового взноса 5.00% и нагрузкой 20.00%',
+            'A1': 'Таблица тарифов в % с технической процентной ставкой 5.00% и нагрузкой 20.00%',
             'A2': 'Тип страхования: страхование жизни на срок',
-            'A3': 'Периодичность уплаты: ежегодно',
+            'A3': 'Периодичность уплаты страхового взноса: ежегодно',
             'A4': 'Пол застрахованного: мужской',
             'A5': 'Возраст застрахованного',
             'B5': 'Период страхования (лет)'
@@ -262,7 +262,7 @@ class CalculatorTest(TestCase):
                   'insurance_premium_frequency': 'simultaneously', 'response_language_code': 'ru'}
         expected_results_dict = {
             'A2': 'Тип страхования: чисто накопительное страхование',
-            'A3': 'Периодичность уплаты: единовременно',
+            'A3': 'Периодичность уплаты страхового взноса: единовременно',
             'A4': 'Период страхования (лет, месяцев)',
             'A5': 'Год',
             'B5': 'Месяц'
@@ -275,7 +275,7 @@ class CalculatorTest(TestCase):
                   'gender': 'female', 'response_language_code': 'ru'}
         expected_results_dict = {
             'A2': 'Тип страхования: пожизненное страхование',
-            'A3': 'Периодичность уплаты: ежемесячно',
+            'A3': 'Периодичность уплаты страхового взноса: ежемесячно',
             'A4': 'Пол застрахованного: женский',
             'B5': 'Тариф'
         }

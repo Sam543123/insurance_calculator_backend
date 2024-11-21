@@ -22,7 +22,7 @@ def data_fields_to_snake_case(data):
 def get_default_request_base_data(snake_case=True):
     data = {'insuranceType': 'term life insurance',
             'insurancePremiumFrequency': 'annually',
-            'insurancePremiumRate': 0.05,
+            'technicalInterestRate': 0.05,
             'insuranceLoading': 0.2, 'gender': 'male'}
     if snake_case:
         return data_fields_to_snake_case(data)
@@ -56,7 +56,7 @@ def get_default_errors():
             "insurance_premium_frequency": [
                 "This field is required."
             ],
-            "insurance_premium_rate": [
+            "technical_interest_rate": [
                 "This field is required."
             ]
         }
