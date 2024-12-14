@@ -63,7 +63,7 @@ class CalculatorSerializerTest(SimpleTestCase):
         self.check_invalid_data_processing(data, expected_errors, IntermediateCalculatorInputSerializer)
         expected_errors = {
             'non_field_errors': ['Birth date can\'t be later than insurance start date.']}
-        data['birth_date'] = "2024-08-25"
+        data['birth_date'] = '2024-08-25'
         self.check_invalid_data_processing(data, expected_errors, IntermediateCalculatorInputSerializer)
 
         expected_errors = {

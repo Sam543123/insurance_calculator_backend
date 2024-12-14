@@ -31,11 +31,11 @@ class InsuranceCalculator:
         # age of the insured person at the time of insurance start in months
         start_age = delta.months + 12 * delta.years
         processed_insurance_period = insurance_period
-        if insurance_type == "whole life insurance":
+        if insurance_type == 'whole life insurance':
             # It is supposed that the maximum age of the insured person is 101 years
             end_age = InsuranceCalculator.MAXIMUM_INSURANCE_AGE_MONTHS
             processed_insurance_period = end_age - start_age
-        if insurance_type != "cumulative insurance":
+        if insurance_type != 'cumulative insurance':
             # age of the insured person  at the time of insurance start and end in years
             # to get necessary records from life table
             lower_age_border = start_age // 12
@@ -56,11 +56,11 @@ class InsuranceCalculator:
         """
         parsed_params = {'lx': None, 'dx': None}
         processed_maximum_insurance_period = maximum_insurance_period
-        if insurance_type == "whole life insurance":
+        if insurance_type == 'whole life insurance':
             # It is supposed that the maximum age of the insured person is 101 years
             end_age = InsuranceCalculator.MAXIMUM_INSURANCE_AGE_MONTHS
             processed_maximum_insurance_period = end_age - maximum_insurance_start_age
-        if insurance_type != "cumulative insurance":
+        if insurance_type != 'cumulative insurance':
             # age of the insured person  at the time of insurance start and end in years
             # to get necessary records from life table
             lower_age_border = maximum_insurance_start_age
@@ -82,7 +82,7 @@ class InsuranceCalculator:
         # number of people died at particular age
         dx = {}
         age_field = 'age'
-        if gender == "male":
+        if gender == 'male':
             lx_field, dx_field = 'men_survived_to_age', 'men_died_at_age'
         else:
             lx_field, dx_field = 'women_survived_to_age', 'women_died_at_age'
@@ -203,7 +203,7 @@ class InsuranceCalculator:
         """
         processed_insurance_loading = insurance_loading
         v = 1 / (1 + technical_interest_rate)
-        if insurance_type != "cumulative insurance":
+        if insurance_type != 'cumulative insurance':
             # number of people survived to time of reserve calculation
             l_t = InsuranceCalculator.__fractional_lx(start_age + reserve_calculation_period, lx, dx)
         # if insurance_premium is None then insurance_sum is used to calculate reserve
@@ -227,13 +227,13 @@ class InsuranceCalculator:
 
         #  calculate reserve for pure endowment and cumulative insurance as difference between
         #  past payments of insurance premium and insurance sum
-        if insurance_type in {"pure endowment", "cumulative insurance"}:
+        if insurance_type in {'pure endowment', 'cumulative insurance'}:
             premium_annuity = InsuranceCalculator.__calculate_premium_annuity(insurance_type,
                                                                               insurance_premium_frequency,
                                                                               technical_interest_rate,
                                                                               reserve_calculation_period, lx,
                                                                               dx, start_age)
-            if insurance_type == "pure endowment":
+            if insurance_type == 'pure endowment':
                 reserve = insurance_premium * (1 - processed_insurance_loading) * premium_annuity / (
                             l_t * v ** (reserve_calculation_period / 12))
             else:
@@ -265,24 +265,24 @@ class InsuranceCalculator:
         """
         annuity_cost = 0
         v = 1 / (1 + technical_interest_rate)
-        if insurance_premium_frequency == "simultaneously" and skip_period == 0:
-            if insurance_type != "cumulative insurance":
+        if insurance_premium_frequency == 'simultaneously' and skip_period == 0:
+            if insurance_type != 'cumulative insurance':
                 annuity_cost = InsuranceCalculator.__fractional_lx(start_age, lx, dx)
             else:
                 annuity_cost = 1
-        elif insurance_premium_frequency == "annually":
+        elif insurance_premium_frequency == 'annually':
             for j, year in enumerate(range(ceil(skip_period / 12), ceil(insurance_period / 12))):
                 #  multiplier to discount annuity cost at start time
                 discount_multiplier = v ** j
-                if insurance_type != "cumulative insurance":
+                if insurance_type != 'cumulative insurance':
                     l_frac = InsuranceCalculator.__fractional_lx(start_age + 12 * year, lx, dx)
                     annuity_cost += discount_multiplier * l_frac
                 else:
                     annuity_cost += discount_multiplier
-        elif insurance_premium_frequency == "monthly":
+        elif insurance_premium_frequency == 'monthly':
             for j, month in enumerate(range(skip_period, insurance_period)):
                 discount_multiplier = v ** (j / 12)
-                if insurance_type != "cumulative insurance":
+                if insurance_type != 'cumulative insurance':
                     l_frac = InsuranceCalculator.__fractional_lx(start_age + month, lx, dx)
                     annuity_cost += discount_multiplier * l_frac
                 else:
@@ -301,9 +301,9 @@ class InsuranceCalculator:
         v = 1 / (1 + technical_interest_rate)
         # use alias for frequently used parameters
         i = technical_interest_rate
-        if insurance_type == "cumulative insurance":
+        if insurance_type == 'cumulative insurance':
             annuity_cost = v ** ((insurance_period - skip_period) / 12)
-        elif insurance_type == "pure endowment":
+        elif insurance_type == 'pure endowment':
             l_end = InsuranceCalculator.__fractional_lx(start_age + insurance_period, lx, dx)
             annuity_cost = v ** ((insurance_period - skip_period) / 12) * l_end
         else:

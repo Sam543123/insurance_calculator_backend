@@ -31,8 +31,8 @@ def get_default_request_base_data(snake_case=True):
 
 def get_default_request_data(snake_case=True):
     base_common_data = get_default_request_base_data()
-    data = {**base_common_data, 'birthDate': "1995-10-21",
-            'insuranceStartDate': "2024-08-24",
+    data = {**base_common_data, 'birthDate': '1995-10-21',
+            'insuranceStartDate': '2024-08-24',
             'insurancePeriod': 69}
     if snake_case:
         return data_fields_to_snake_case(data)
@@ -52,12 +52,12 @@ def get_default_tariffs_request_data(snake_case=True):
 
 def get_default_errors():
     errors = {
-        "errors": {
-            "insurance_premium_frequency": [
-                "This field is required."
+        'errors': {
+            'insurance_premium_frequency': [
+                'This field is required.'
             ],
-            "technical_interest_rate": [
-                "This field is required."
+            'technical_interest_rate': [
+                'This field is required.'
             ]
         }
     }
@@ -69,7 +69,7 @@ def get_response_documentation(successful_result):
                    200: OpenApiResponse(response=Any, examples=[
                        OpenApiExample(
                            'Successful response example',
-                           value={"result": successful_result},
+                           value={'result': successful_result},
                            status_codes=[200]
                        )
                    ]),

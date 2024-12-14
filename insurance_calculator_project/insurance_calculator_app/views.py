@@ -21,7 +21,7 @@ from insurance_calculator_app.utils import get_default_request_data, get_default
                        'Request Example',
                        value={
                            **get_default_request_data(),
-                           "insurance_sum": 10000
+                           'insurance_sum': 10000
                        },
                        request_only=True,
                    )]
@@ -43,7 +43,7 @@ def calculate_insurance_premium(request):
                        'Request Example',
                        value={
                            **get_default_request_data(),
-                           "insurance_premium": 10
+                           'insurance_premium': 10
                        },
                        request_only=True,
                    )]
@@ -65,8 +65,8 @@ def calculate_insurance_sum(request):
                        'Example of request with insurance premium',
                        value={
                            **get_default_request_data(),
-                           "insurance_premium": 10,
-                           "reserve_calculation_period": 38
+                           'insurance_premium': 10,
+                           'reserve_calculation_period': 38
                        },
                        request_only=True,
                    ),
@@ -74,9 +74,9 @@ def calculate_insurance_sum(request):
                        'Example of request with insurance sum',
                        value={
                            **get_default_request_data(),
-                           "insurance_loading": None,
-                           "insurance_sum": 4508.95243,
-                           "reserve_calculation_period": 38
+                           'insurance_loading': None,
+                           'insurance_sum': 4508.95243,
+                           'reserve_calculation_period': 38
                        },
                        request_only=True,
                    )

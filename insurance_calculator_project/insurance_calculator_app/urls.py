@@ -4,8 +4,8 @@ from insurance_calculator_app.views import calculate_insurance_sum, calculate_in
     calculate_reserve
 
 urlpatterns = [
-    path('insurance_premium/', calculate_insurance_premium, name='insurance-premium'),
-    path('insurance_sum/', calculate_insurance_sum, name='insurance-sum'),
+    path('insurance-premium/', calculate_insurance_premium, name='insurance-premium'),
+    path('insurance-sum/', calculate_insurance_sum, name='insurance-sum'),
     path('tariffs/', calculate_tariffs, name='tariffs'),
     path('reserve/', calculate_reserve, name='reserve'),
 ]
